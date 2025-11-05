@@ -6,6 +6,7 @@
       </main>  
       <router-link to="/favorites" v-if="showFavBtn" class="floating-fav-btn" aria-label="Voir mes favoris">Favorites</router-link>
     <Footer v-if="showFooter"/>
+    <h1>Test Commit</h1>
   </div>
 </template>
 
