@@ -11,6 +11,14 @@
       </a>
     </nav>
 
+    <div class="search-container">
+      <input type="text" id= "searchInput" v-model="searchTerm" placeholder="Search ..." />
+    </div>
+    
+    <div v-if="searchTerm && !Object.keys(itemsBySubCategory).length" class="no-results">
+      No results found.
+    </div>
+
     <section v-for="(items, subCategory) in itemsBySubCategory" :key="subCategory" :id="subCategory" class="place-section">
       <h2>{{ subCategoryTitles[subCategory]}}</h2>
       <div class="destinations-grid">
@@ -29,7 +37,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { allItems } from '@/data/database.js';
 import ItemCard from '@/components/ItemCard.vue';
 
@@ -60,10 +68,23 @@ const subCategoryTitles = {
   // ... ajoutez d'autres titres si nécessaire
 };
 
+const searchTerm = ref('');
+
+// Propriété calculée qui filtre les lieux en fonction de la recherche
+const filteredItems = computed(() => {
+  if (!searchTerm.value) {
+    return allItems;
+  }
+  return allItems.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+    item.shortDesc.toLowerCase().includes(searchTerm.value.toLowerCase())
+  );
+});
+
 // --- Logique de regroupement ---
 const itemsBySubCategory = computed(() => {
   // 1. D'abord, on filtre pour n'avoir que les items de la catégorie actuelle (ex: 'hotels')
-  const itemsForCategory = allItems.filter(item => item.category === props.category);
+  const itemsForCategory = filteredItems.value.filter(item => item.category === props.category);
 
   // 2. Ensuite, on utilise la même logique "reduce" que pour les régions, mais avec "subCategory"
   return itemsForCategory.reduce((acc, item) => {
@@ -78,5 +99,10 @@ const itemsBySubCategory = computed(() => {
 </script>
 
 <style scoped>
-
+.no-results {
+  text-align: center;
+  font-size: 1.2em;
+  color: #000000;
+  margin-top: 20px;
+}
 </style>
