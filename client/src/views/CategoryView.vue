@@ -1,6 +1,6 @@
 <template>
   <div>
-    <section class="places-hero fade-in">
+    <section :class="['places-hero', 'fade-in', dynamicClass]">
       <h1>{{ pageTitle }}</h1>
       <p>{{ pageDescription }}</p>
     </section>
@@ -48,9 +48,11 @@ const props = defineProps({
 
 const titles = {places:"Explore the Most Iconic Places in Lebanon", hotels: 'Our Finest Hotels', restaurants: 'A Taste of Lebanon', activities: 'Unforgettable Activities' };
 const descriptions = {places:"From ancient ruins to breathtaking natural wonders, discover Lebanon’s top destinations." , hotels: 'Find your perfect stay.', restaurants: 'Explore rich flavors.', activities: 'Experience the best adventures.' };
+const classes = {favorites:"favorites-hero", hotels: 'hotels-hero', restaurants: 'restaurants-hero', activities: 'activities-hero' };
 
 const pageTitle = computed(() => titles[props.category] || 'Discover');
 const pageDescription = computed(() => descriptions[props.category] || 'Explore our selections.');
+const dynamicClass = computed(() => {return classes[props.category] || ""; });
 
 const subCategoryTitles = {
   Beirut: '🌇 Beirut 🌇',

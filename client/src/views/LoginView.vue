@@ -1,9 +1,9 @@
 <template>
-  <div class="login-page">
-    <section class="places-hero fade-in">
+  <section class="places-hero fade-in">
             <h1>Login</h1>
             <p>Connect to your account now !</p>
     </section>
+  <div class="login-page">
 
     <form @submit.prevent="onLogin">
       <input 
@@ -19,6 +19,7 @@
         placeholder="Password"
         required
       />
+      <router-link to="/register">Don't have an account? Sign up</router-link>
 
       <button type="submit">Login</button>
     </form>
@@ -30,6 +31,7 @@
 <script setup>
 import { ref } from "vue"
 import { useRouter } from "vue-router"
+import { login } from "@/store/auth"
 
 const email = ref("")
 const password = ref("")
@@ -56,7 +58,10 @@ const onLogin = async () => {
       return
     }
     localStorage.setItem("token", data.token)
-    router.push("/profile")
+    localStorage.setItem("user", JSON.stringify(data.user))
+    login(data.user)
+    
+    router.push("/")
 
   } catch (err) {
     error.value = "Cannot reach server"
@@ -68,5 +73,18 @@ const onLogin = async () => {
 .error {
   color: red;
   margin-top: 10px;
+}
+.login-page{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+  gap: 15px;
+}
+
+form{
+  display: flex;
+  flex-direction: column;
+  gap: 15px
 }
 </style>

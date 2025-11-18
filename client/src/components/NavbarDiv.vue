@@ -54,13 +54,65 @@
       <router-link to="/plan-your-trip">Plan your trip</router-link>
       <router-link to="/about">About</router-link>
       <router-link to="/contact">Contact</router-link>
-      <router-link to="/login">Login</router-link>
-      <router-link to="/register">Register</router-link>
+      <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
+      <router-link v-else to="/account">My Account</router-link>
+      <button v-if="InMyAccount" class="logout-btn" @click="handleLogout">Logout</button>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { isLoggedIn, user, logout } from "@/store/auth"
 const isMenuOpen = ref(false);
+const router = useRouter();
+const route = useRoute();
+
+const InMyAccount = ref(false)
+
+onMounted(() => {
+  const token = localStorage.getItem("token")
+  const userData = localStorage.getItem("user")
+  InMyAccount.value = route.meta.showLogout === true;
+
+  if (token && userData) {
+    isLoggedIn.value = true
+    user.value = JSON.parse(userData)
+  }else {
+    isLoggedIn.value = false
+    user.value = null
+  }
+})
+
+const handleLogout = () => {
+  localStorage.removeItem("token")
+  localStorage.removeItem("user")
+
+  logout()
+
+  router.push("/login")
+}
+
+watch(() => route.meta, (newMeta) => {
+  InMyAccount.value = newMeta.showLogout === true;
+});
+
 </script>
+
+<style scoped>
+
+.logout-btn {
+  all: unset;
+  color: #f73041;
+  border: none;
+  padding: 6px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.logout-btn:hover {
+  color: #cc2f3a;
+}
+
+</style>

@@ -1,19 +1,19 @@
 <template>
-  <div class="register-container">
-    <section class="places-hero fade-in">
+  <section class="places-hero fade-in">
             <h1>Register</h1>
             <p>Create an account now !</p>
     </section>
+  <div class="register-container">
 
     <form @submit.prevent="registerUser">
 
-      <label>Name</label>
+      <label>Name : </label>
       <input v-model="name" type="text" required />
 
-      <label>Email</label>
+      <label>Email : </label>
       <input v-model="email" type="email" required />
 
-      <label>Password</label>
+      <label>Password : </label>
       <input v-model="password" type="password" required />
 
       <button type="submit">Create Account</button>
@@ -78,5 +78,18 @@ const registerUser = async () => {
 }
 label{
     color:black;
+}
+.register-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+  gap: 15px;
+}
+
+form{
+  display: flex;
+  flex-direction: column;
+  gap: 15px
 }
 </style>

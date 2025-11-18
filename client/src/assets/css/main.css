@@ -426,43 +426,19 @@ html {
   font-family: 'Playfair Display', serif;
 }
 
-.places-hero1 {
+.restaurants-hero  {
   background-image: url('../images/food.jpeg');
-  background-size: cover;
-  background-position: center;
-  color: white;
-  text-align: center;
-  padding: 120px 20px 100px;
-  font-family: 'Playfair Display', serif;
 }
-.places-hero2 {
+.hotels-hero{
   background-image: url('../images/hote.jpeg');
-  background-size: cover;
-  background-position: center;
-  color: white;
-  text-align: center;
-  padding: 120px 20px 100px;
-  font-family: 'Playfair Display', serif;
 }
 
-.places-hero4 {
+.activities-hero {
   background-image: url('../images/activity.jpeg');
-  background-size: cover;
-  background-position: center;
-  color: white;
-  text-align: center;
-  padding: 120px 20px 100px;
-  font-family: 'Playfair Display', serif;
 }
 
-.places-hero5 {
+.favorites-hero {
   background-image: url('../images/ocean.jpg');
-  background-size: cover;
-  background-position: center;
-  color: white;
-  text-align: center;
-  padding: 120px 20px 100px;
-  font-family: 'Playfair Display', serif;
 }
 
 .places-hero h1 {

@@ -86,7 +86,13 @@ const routes = [
     path: '/register',
     name: 'register',
     component: () => import('../views/RegisterView.vue')
-  }
+  },
+  {
+    path: '/account',
+    name: 'account',
+    component: () => import('../views/MyAccountView.vue'),
+    meta: { showLogout: true }
+  },
 
 ]
 
