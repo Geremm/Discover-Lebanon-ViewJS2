@@ -9,10 +9,10 @@
         <div class="mega-menu">
           <div class="mega-column">
             <h4>Region</h4>
-            <router-link to="/places#beirut">Beirut</router-link>
-            <router-link to="/places#north">North</router-link>
-            <router-link to="/places#south">South</router-link>
-            <router-link to="/places#bekaa">Bekaa</router-link>
+            <router-link to="/places#Beirut">Beirut</router-link>
+            <router-link to="/places#North">North</router-link>
+            <router-link to="/places#South">South</router-link>
+            <router-link to="/places#Bekaa">Bekaa</router-link>
           </div>
         </div>
       </div>
@@ -54,6 +54,8 @@
       <router-link to="/plan-your-trip">Plan your trip</router-link>
       <router-link to="/about">About</router-link>
       <router-link to="/contact">Contact</router-link>
+      <router-link to="/login">Login</router-link>
+      <router-link to="/register">Register</router-link>
     </div>
   </header>
 </template>

@@ -45,15 +45,18 @@ const props = defineProps({
   category: String
 });
 
-// --- Titres et descriptions de la page ---
-const titles = { hotels: 'Our Finest Hotels', restaurants: 'A Taste of Lebanon', activities: 'Unforgettable Activities' };
-const descriptions = { hotels: 'Find your perfect stay.', restaurants: 'Explore rich flavors.', activities: 'Experience the best adventures.' };
+
+const titles = {places:"Explore the Most Iconic Places in Lebanon", hotels: 'Our Finest Hotels', restaurants: 'A Taste of Lebanon', activities: 'Unforgettable Activities' };
+const descriptions = {places:"From ancient ruins to breathtaking natural wonders, discover Lebanon’s top destinations." , hotels: 'Find your perfect stay.', restaurants: 'Explore rich flavors.', activities: 'Experience the best adventures.' };
 
 const pageTitle = computed(() => titles[props.category] || 'Discover');
 const pageDescription = computed(() => descriptions[props.category] || 'Explore our selections.');
 
-// --- Titres pour les sections de sous-catégories ---
 const subCategoryTitles = {
+  Beirut: '🌇 Beirut 🌇',
+  North: '⛱️ North Lebanon ⛱️',
+  South: '☀️ South Lebanon ☀️',
+  Bekaa: '🌳 Bekaa Valley 🌳',
   Luxury: 'Luxury Hotels',
   Boutique: 'Boutique Hotels',
   Budget: 'Budget Hotels',
@@ -65,12 +68,11 @@ const subCategoryTitles = {
   Outdoor: '🌲 Outdoor Activities 🌲',
   Cultural: '🏛️ Cultural Experiences 🏛️',
 
-  // ... ajoutez d'autres titres si nécessaire
 };
 
 const searchTerm = ref('');
 
-// Propriété calculée qui filtre les lieux en fonction de la recherche
+
 const filteredItems = computed(() => {
   if (!searchTerm.value) {
     return allItems;
@@ -81,12 +83,11 @@ const filteredItems = computed(() => {
   );
 });
 
-// --- Logique de regroupement ---
+
 const itemsBySubCategory = computed(() => {
-  // 1. D'abord, on filtre pour n'avoir que les items de la catégorie actuelle (ex: 'hotels')
+  
   const itemsForCategory = filteredItems.value.filter(item => item.category === props.category);
 
-  // 2. Ensuite, on utilise la même logique "reduce" que pour les régions, mais avec "subCategory"
   return itemsForCategory.reduce((acc, item) => {
     const key = item.subCategory;
     if (!acc[key]) {
@@ -96,6 +97,9 @@ const itemsBySubCategory = computed(() => {
     return acc;
   }, {});
 });
+
+
+console.log(itemsBySubCategory.value);
 </script>
 
 <style scoped>

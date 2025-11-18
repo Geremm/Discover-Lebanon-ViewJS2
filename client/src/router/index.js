@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+//import { nextTick } from 'vue'
 import HomeView from '../views/HomeView.vue'
 
 const routes = [
@@ -7,15 +8,14 @@ const routes = [
     name: 'home',
     component: HomeView
   },
-  // VÉRIFIEZ ATTENTIVEMENT CE BLOC
   {
-    path: '/places', // <-- Le chemin est-il correct ?
+    path: '/places',
     name: 'places',
-    // Le chemin vers le fichier de la vue est-il correct ?
-    component: () => import('../views/PlacesView.vue')
+    component: () => import('../views/CategoryView.vue'),
+    props: { category: 'places' }
   },
   {
-    path: '/places/:id', // Correspond à des URLs comme /places/1, /places/2, etc.
+    path: '/places/:id',
     name: 'place-detail',
     component: () => import('../views/DetailView.vue')
   },
@@ -43,27 +43,25 @@ const routes = [
     path: '/hotels',
     name: 'hotels',
     component: () => import('../views/CategoryView.vue'),
-    props: { category: 'hotels' } // On dit au composant d'afficher les hôtels
+    props: { category: 'hotels' }
   },
   {
     path: '/restaurants',
     name: 'restaurants',
     component: () => import('../views/CategoryView.vue'),
-    props: { category: 'restaurants' } // On lui dit d'afficher les restaurants
+    props: { category: 'restaurants' }
   },
   {
     path: '/activities',
     name: 'activities',
     component: () => import('../views/CategoryView.vue'),
-    props: { category: 'activities' } // On lui dit d'afficher les activités
+    props: { category: 'activities' }
   },
   {
     path: '/activities/:id',
     name: 'activity-detail',
     component: () => import('../views/DetailView.vue') 
   },
-  
-  // Pour Hotels et Restaurants (layout avec carte)
   {
     path: '/hotels/:id',
     name: 'hotel-detail',
@@ -78,12 +76,45 @@ const routes = [
     path: '/favorites',
     name: 'favorites',
     component: () => import('../views/FavoritesView.vue')
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('../views/LoginView.vue')
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('../views/RegisterView.vue')
   }
+
 ]
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes
+  routes,
+//   scrollBehavior(to, from, savedPosition) {
+//     // 1) retour arrière / avant : garder la position
+//     if (savedPosition) {
+//       return savedPosition
+//     }
+
+//     // 2) si on a un hash (#xxxx)
+//     if (to.hash) {
+//       // on attend que la page soit rendue avant de scroller
+//       return new Promise((resolve) => {
+//         nextTick(() => {
+//           resolve({
+//             el: to.hash,      // cible un élément avec id="xxxx"
+//             behavior: 'smooth'
+//           })
+//         })
+//       })
+//     }
+
+//     // 3) par défaut, remonter en haut
+//     return { top: 0 }
+//   }
 })
 
 export default router
