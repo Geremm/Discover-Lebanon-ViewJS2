@@ -1,27 +1,27 @@
 <template>
-  <section class="places-hero fade-in">
-            <h1>Register</h1>
-            <p>Create an account now !</p>
-    </section>
-  <div class="register-container">
+  <section class="places-hero-login fade-in"> 
+    <div class=" login-box ">
+      <h1>Register</h1>
+      <p id="create">Create an account now !</p>
+    
+      <div class="login-page">
+        <form @submit.prevent="registerUser">
 
-    <form @submit.prevent="registerUser">
+          <input v-model="name" type="text" placeholder="Name" required />
 
-      <label>Name : </label>
-      <input v-model="name" type="text" required />
+          <input v-model="email" type="email" placeholder="Email" required />
 
-      <label>Email : </label>
-      <input v-model="email" type="email" required />
+          <input v-model="password" type="password" placeholder="Password" required />
 
-      <label>Password : </label>
-      <input v-model="password" type="password" required />
+    
+          <button type="submit">Create Account</button>
+        </form>
 
-      <button type="submit">Create Account</button>
-    </form>
-
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="success">{{ successMessage }}</p>
-  </div>
+        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        <p v-if="successMessage" class="success">{{ successMessage }}</p>
+      </div>
+    </div>
+  </section>
 </template>
 
 
@@ -70,21 +70,13 @@ const registerUser = async () => {
 
 
 <style scoped>
-.error{
-  color: red;
-}
-.success {
-  color: green;
-}
-label{
-    color:black;
-}
-.register-container{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 30px;
-  gap: 15px;
+.error{color: red;}
+.success {color: green;}
+
+.places-hero-login{padding-top:5%;}
+
+#create{
+  margin-bottom: 25px;
 }
 
 form{
