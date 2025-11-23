@@ -4,13 +4,15 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const allItems = require('./data/database').allItems;
+
 
 const app = express();
 const port = 3000;
 
 const JWT_SECRET = "KhazzDiscoverChris17";
 
-app.use(cors({origin: "http://localhost:8080"})); 
+app.use(cors({origin: "http://localhost:8081"})); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -19,11 +21,34 @@ app.get('/', (req, res) => {
  res.send('Hello World! je suis dans le  /');
 });
 
+app.get('/api/items', (req, res) => {
+    const category = req.query.category; // ex: /api/items?category=hotels
+    
+    if (category) {
+        const filtered = allItems.filter(item => item.category === category);
+        return res.json(filtered);
+    }
+    
+    res.json(allItems);
+});
+
+// 2. Récupérer un item spécifique par son ID
+app.get('/api/item/:id', (req, res) => {
+    const id = parseInt(req.params.id); // Convertir l'ID de l'URL en nombre
+    const item = allItems.find(i => i.id === id);
+    
+    if (item) {
+        res.json(item);
+    } else {
+        res.status(404).json({ success: false, message: "Item not found" });
+    }
+});
+
 
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "root",
   database: "efrei",
   port: 3306
 });
@@ -88,7 +113,7 @@ app.post("/api/login", (req, res) => {
         success: true,
         message: "Login successful",
         token,
-        user: { id: user.id, name: user.name, email: user.email }
+        user: { id: user.id, name: user.name, email: user.email, role: user.role }
       });
     } catch (e) {
       return res.status(500).json({ success: false, message: "Compare error" });

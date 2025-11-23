@@ -36,13 +36,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import L from 'leaflet';
-import { Carousel } from 'bootstrap'; // Import ciblé du JS de Bootstrap
+import { Carousel } from 'bootstrap'; 
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
-import { allItems } from '@/data/database.js';
+import api from '@/services/api.js';
 
 // --- Configuration initiale de Leaflet ---
 L.Icon.Default.mergeOptions({
@@ -54,40 +54,102 @@ L.Icon.Default.mergeOptions({
 const route = useRoute();
 const mapContainer = ref(null);
 const carouselElement = ref(null);
+const item = ref(null); // 1. CORRECTION : Déclaration de la variable item
 let mapInstance = null;
 let carouselInstance = null;
 
-// --- Logique du composant (Computed Properties) ---
-const item = computed(() => {
-  const itemId = Number(route.params.id);
-  return allItems.find(i => i.id === itemId);
-});
+// --- Chargement des données ---
+const loadItem = async () => {
+  const id = route.params.id;
+  try {
+    // 2. CORRECTION : Avec fetch, la réponse est directement l'objet de données
+    const data = await api.getItemById(id);
+    item.value = data; 
+  } catch (error) {
+    console.error("Erreur lors du chargement de l'item:", error);
+  }
+};
 
+// --- Computed Properties ---
 const phoneHtml = computed(() => {
   if (!item.value?.phone) return '';
   return `<i class="bi bi-telephone-fill"></i> <a href="tel:${item.value.phone}">${item.value.phone}</a>`;
 });
 
-// --- Fonctions d'initialisation et de nettoyage ---
+// --- Fonctions d'initialisation ---
 function initializeComponent() {
-  if (mapInstance) mapInstance.remove();
-  if (carouselInstance) carouselInstance.dispose();
+  // 1. Nettoyage préalable
+  if (mapInstance) {
+    mapInstance.remove();
+    mapInstance = null;
+  }
+  if (carouselInstance) {
+    carouselInstance.dispose();
+    carouselInstance = null;
+  }
 
+  // 2. Vérification que le DOM et les données sont prêts
   if (item.value && mapContainer.value && carouselElement.value) {
-    // Initialise la carte
-    mapInstance = L.map(mapContainer.value).setView([item.value.lat, item.value.lng], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
     
+    // --- A. Initialisation de la Carte ---
+    mapInstance = L.map(mapContainer.value).setView([item.value.lat, item.value.lng], 15);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapInstance);
+    
+    // Configuration de l'icône rouge
     const redIcon = new L.Icon({
       iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
       shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-      iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
     });
-    L.marker([item.value.lat, item.value.lng], { icon: redIcon }).addTo(mapInstance);
     
+    const marker = L.marker([item.value.lat, item.value.lng], { icon: redIcon }).addTo(mapInstance);
+    
+    // --- CONSTRUCTION DU POPUP ---
+    
+    // 1. Choix de l'image : on prend la 1ère du carrousel, sinon l'image principale
+    const popupImage = (item.value.carouselImages && item.value.carouselImages.length > 0) 
+      ? item.value.carouselImages[0] 
+      : item.value.imageUrl;
+
+    // 2. Gestion du téléphone (pour ne pas afficher "undefined" ou une ligne vide)
+    // On remet aussi les styles inline de votre code original (couleur #d9534f)
+    let phoneSection = '';
+    if (item.value.phone) {
+      phoneSection = `
+        <p class="phone" style="margin-top: 5px;">
+          <i class="bi bi-telephone-fill" style="color: #d9534f; margin-right: 6px;"></i>
+          <a href="tel:${item.value.phone}" style="color: #d9534f; text-decoration: none;">
+            ${item.value.phone}
+          </a>
+        </p>
+      `;
+    }
+
+    const popupHTML = `
+      <div class="map-popup" style="text-align: center;">
+        <img src="${popupImage}" alt="${item.value.name}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px;" />
+        <h5 style="margin: 0 0 5px 0; font-size: 1rem; font-weight: bold;">${item.value.name}</h5>
+        <p style="margin: 0; font-size: 0.9rem; color: #555;">${item.value.shortDesc || ''}</p>
+        ${phoneSection}
+      </div>
+    `;
+
+    marker.bindPopup(popupHTML, {
+      offset: L.point(0, -30),
+      maxWidth: 250,
+      className: 'custom-popup'
+    }).openPopup();
+    
+    // Correction du bug d'affichage Leaflet
     setTimeout(() => mapInstance.invalidateSize(), 100);
 
-    // Initialise le carrousel
+    // --- B. Initialisation du Carrousel ---
     carouselInstance = new Carousel(carouselElement.value, {
       interval: 3000,
       ride: 'carousel'
@@ -96,8 +158,17 @@ function initializeComponent() {
 }
 
 // --- Hooks de cycle de vie ---
-onMounted(initializeComponent);
-watch(item, initializeComponent);
+onMounted(() => {
+  loadItem(); // On lance le chargement
+});
+
+// 3. CORRECTION : Utilisation de nextTick
+// On surveille l'item. Quand il arrive, on attend que Vue mette à jour le DOM (v-if), PUIS on initialise.
+watch(item, async () => {
+  await nextTick(); 
+  initializeComponent();
+});
+
 onUnmounted(() => {
   if (mapInstance) mapInstance.remove();
   if (carouselInstance) carouselInstance.dispose();

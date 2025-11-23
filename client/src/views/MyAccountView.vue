@@ -13,13 +13,14 @@
           </div>
 
           <div class="profile-text">
-            <h2 class="profile-name">{{ user.name || 'Traveler' }}</h2>
-            <p class="profile-email">{{ user.email }}</p>
+            <h2 class="profile-name">{{ user && user.name ? user.name : 'Traveler' }}</h2>
+            <p class="profile-email">{{ user && user.email ? user.email : '' }}</p>
             <p class="profile-tagline">Ready for your next Lebanese escape 🌿</p>
           </div>
 
           <div class="profile-badges">
             <span class="badge-chip">Member</span>
+            <span v-if="user && user.role === 'admin'" class="badge-chip badge-chip-admin">Admin</span>
             <span class="badge-chip badge-chip-gold">
               {{ orders.length }} trip{{ orders.length > 1 ? 's' : '' }} planned
             </span>
@@ -41,9 +42,8 @@
         <button class="logout-btn-red" @click="handleLogout">Logout</button>
       </aside>
 
-      <!-- =============== RIGHT PANE =============== -->
       <main class="account-main">
-        <!-- Top cards row - changes with tab -->
+        
         <section class="top-cards" v-if="activeTab === 'info'">
           <div class="top-card">
             <div class="top-card-icon">👤</div>
@@ -70,7 +70,6 @@
           </div>
         </section>
 
-        <!-- CONTENT: INFO -->
         <section v-if="activeTab === 'info'" class="panel">
           <header class="panel-header">
             <div>
@@ -84,15 +83,19 @@
               <h3>Profile</h3>
               <div class="info-row">
                 <span class="info-label">Name</span>
-                <span class="info-value">{{ user.name }}</span>
+                <span class="info-value">{{ user ? user.name : "" }}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Email</span>
-                <span class="info-value">{{ user.email }}</span>
+                <span class="info-value">{{ user ? user.email : "" }}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">User ID</span>
-                <span class="info-value">#{{ user.id }}</span>
+                <span class="info-value">#{{ user ? user.id : "" }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Role</span>
+                <span class="info-value" style="text-transform: capitalize;">{{ user ? user.role : "User" }}</span>
               </div>
             </div>
 
@@ -119,7 +122,6 @@
           </div>
         </section>
 
-        <!-- CONTENT: FAVORITES -->
         <section v-else-if="activeTab === 'favourites'" class="panel">
           <header class="panel-header">
             <div>
@@ -153,7 +155,6 @@
           </div>
         </section>
 
-        <!-- CONTENT: ORDERS -->
         <section v-else-if="activeTab === 'orders'" class="panel">
           <header class="panel-header">
             <div>
@@ -199,7 +200,6 @@
           </div>
         </section>
 
-        <!-- CONTENT: SECURITY -->
         <section v-else-if="activeTab === 'security'" class="panel">
           <header class="panel-header">
             <div>
@@ -272,6 +272,37 @@
             </div>
           </div>
         </section>
+
+        <section v-else-if="activeTab === 'admin'" class="panel">
+          <header class="panel-header">
+            <div>
+              <h2>Admin Dashboard</h2>
+              <p>Manage destinations, users, and site settings.</p>
+            </div>
+          </header>
+
+          <div class="info-grid">
+            <div class="info-card">
+              <h3>Quick Actions</h3>
+              <div class="info-row">
+                 <router-link to="/admin/add-place" class="sidebar-link">➕ Add new place</router-link>
+              </div>
+              <div class="info-row">
+                 <span class="info-label">Manage Users</span>
+              </div>
+            </div>
+             <div class="info-card soft-card">
+              <h3>System Status</h3>
+              <div class="stats-row">
+                 <div class="stat-pill">
+                  <span class="stat-label">Total Items</span>
+                  <span class="stat-value">{{ allItems.length }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
     </div>
   </div>
@@ -281,35 +312,50 @@
 import { ref, onMounted, computed } from "vue"
 import { useRouter } from "vue-router"
 
+// Imports Store & Services
 import { useFavorites } from "@/store/favorites.js"
-import { allItems } from "@/data/database.js"
+import api from "@/services/api.js" 
 import ItemCard from "@/components/ItemCard.vue"
 
 const router = useRouter()
 const activeTab = ref("info")
+const allItems = ref([]) // Sera rempli par l'API
 
+// Définition de l'user en local comme demandé dans le fichier 2
 const user = ref({
   id: "",
   name: "",
-  email: ""
-})
+  email: "",
+  role: ""
+})  
 
-/* ----- SIDEBAR ITEMS ----- */
-const sidebarItems = [
-  { key: "info", label: "Overview", icon: "🏠" },
-  { key: "favourites", label: "Favorites", icon: "❤️" },
-  { key: "orders", label: "Trips", icon: "🧳" },
-  { key: "security", label: "Security", icon: "🔐" }
-]
+/* ----- SIDEBAR ITEMS (LOGIQUE ADMIN) ----- */
+// On garde cette computed property pour afficher l'onglet Admin dynamiquement
+const sidebarItems = computed(() => {
+  const items = [
+    { key: "info", label: "Overview", icon: "🏠" },
+    { key: "favourites", label: "Favorites", icon: "❤️" },
+    { key: "orders", label: "Trips", icon: "🧳" },
+    { key: "security", label: "Security", icon: "🔐" }
+  ]
+
+  // Si le rôle récupéré est 'admin', on ajoute l'onglet
+  if (user.value.role === 'admin') {
+    items.push({ key: "admin", label: "Admin Panel", icon: "⚙️" })
+  }
+
+  return items
+})
 
 /* ----- FAVOURITES ----- */
 const { favoriteSet } = useFavorites()
 
+// Filtre basé sur allItems qui vient maintenant de l'API
 const favoritedItems = computed(() => {
-  return allItems.filter(item => favoriteSet.value.has(item.id))
+  return allItems.value.filter(item => favoriteSet.value.has(item.id))
 })
 
-/* ----- ORDERS (mock data for now) ----- */
+/* ----- ORDERS (mock data) ----- */
 const orders = ref([
   {
     id: "2025-001",
@@ -351,22 +397,20 @@ const updatePassword = () => {
     return
   }
 
-  // TODO: call backend here
+  // TODO : appel API vers ton backend
   console.log("Change password payload:", {
     currentPassword: securityForm.value.currentPassword,
     newPassword: securityForm.value.newPassword
   })
 
   securitySuccess.value = "Password updated (demo)."
-
   securityForm.value.currentPassword = ""
   securityForm.value.newPassword = ""
   securityForm.value.confirmPassword = ""
 }
 
-
-
-/* ----- USER INITIALS FOR AVATAR ----- */
+/* ----- USER INITIALS & LOGOUT ----- */
+// Nécessaire pour l'avatar dans le HTML
 const userInitials = computed(() => {
   if (!user.value.name) return "DL"
   return user.value.name
@@ -377,8 +421,15 @@ const userInitials = computed(() => {
     .join("")
 })
 
-/* ----- AUTH CHECK ----- */
-onMounted(() => {
+// Fonction de déconnexion adaptée au mode "local ref"
+const handleLogout = () => {
+  localStorage.removeItem("user")
+  // localStorage.removeItem("token") // Décommente si tu utilises un token
+  router.push("/login")
+}
+
+/* ----- AUTH CHECK & DATA FETCH ----- */
+onMounted(async () => {
   const storedUser = localStorage.getItem("user")
 
   if (!storedUser) {
@@ -386,12 +437,21 @@ onMounted(() => {
     return
   }
 
+  // On remplit la ref user locale avec les données du localStorage
   user.value = JSON.parse(storedUser)
+
+  // On charge les items depuis l'API comme dans ton fichier 2
+  try {
+    const data = await api.getAllItems()
+    allItems.value = data
+  } catch (error) {
+    console.error("Erreur lors du chargement des favoris dans le compte :", error)
+  }
 })
 </script>
 
 <style scoped>
-/* ===== LAYOUT SHELL ===== */
+/* ===== LAYOUT SHELL (VISUEL DU PREMIER FICHIER) ===== */
 .account-shell {
   min-height: 100vh;
   background: radial-gradient(circle at top left, #f6f1dd 0, #fdfdfb 40%, #ffffff 100%);
@@ -416,6 +476,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   gap: 32px;
+  padding-top:1.43%;
 }
 
 /* ===== SIDEBAR ===== */
@@ -428,6 +489,8 @@ onMounted(() => {
   flex-direction: column;
   gap: 24px;
   border: 1px solid rgba(225, 219, 196, 0.9);
+  /* Sticky sidebar effect if page is long */
+  height: fit-content;
 }
 
 .account-profile-card {
@@ -510,6 +573,12 @@ onMounted(() => {
   color: #8c6a18;
 }
 
+.badge-chip-admin {
+  background: #324c3f;
+  color: #fff;
+  font-weight: bold;
+}
+
 /* sidebar nav */
 .sidebar-nav {
   display: flex;
@@ -530,6 +599,7 @@ onMounted(() => {
   font-size: 14px;
   color: #444;
   transition: all 0.2s ease;
+  text-decoration: none; /* Pour le lien admin */
 }
 
 .sidebar-icon {
@@ -562,6 +632,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 22px;
+  /* Min height pour que le contenu ne soit pas écrasé */
+  min-height: 600px; 
 }
 
 /* Top cards row */
@@ -609,6 +681,12 @@ onMounted(() => {
   border-radius: 22px;
   padding: 20px 20px 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .panel-header {
@@ -935,26 +1013,25 @@ label {
     width: 100%;
     justify-content: flex-start;
   }
+  
   /* ===== LOGOUT BUTTON ===== */
   .logout-btn-red {
-  width: 100%;
-  margin-top: 20px;
-  padding: 12px 0;
-  border: none;
-  border-radius: 12px;
-  background: #ff4b4b;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 6px 15px rgba(255, 0, 0, 0.2);
-  transition: 0.25s ease;
-}
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px 0;
+    border: none;
+    border-radius: 12px;
+    background: #ff4b4b;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(255, 0, 0, 0.2);
+    transition: 0.25s ease;
+  }
 
-.logout-btn-red:hover {
-  background: #e63c3c;
-  transform: translateY(-1px);
-}
-
-
+  .logout-btn-red:hover {
+    background: #e63c3c;
+    transform: translateY(-1px);
+  }
 }
 </style>

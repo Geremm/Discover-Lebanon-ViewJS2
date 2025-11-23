@@ -56,17 +56,15 @@
       <router-link to="/contact">Contact</router-link>
       <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
       <router-link v-else to="/account">My Account</router-link>
-      <button v-if="InMyAccount" class="logout-btn" @click="handleLogout">Logout</button>
     </div>
   </header>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { isLoggedIn, user, logout } from "@/store/auth"
+import { useRoute } from 'vue-router';
+import { isLoggedIn, user } from "@/store/auth"
 const isMenuOpen = ref(false);
-const router = useRouter();
 const route = useRoute();
 
 const InMyAccount = ref(false)
@@ -84,15 +82,6 @@ onMounted(() => {
     user.value = null
   }
 })
-
-const handleLogout = () => {
-  localStorage.removeItem("token")
-  localStorage.removeItem("user")
-
-  logout()
-
-  router.push("/login")
-}
 
 watch(() => route.meta, (newMeta) => {
   InMyAccount.value = newMeta.showLogout === true;

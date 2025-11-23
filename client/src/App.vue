@@ -34,7 +34,7 @@ const showFavBtn = computed(() => {
   if (!v) return false
   // supporte Array ou Set
   const count = Array.isArray(v) ? v.length : (typeof v.size === 'number' ? v.size : 0)
-  return count > 0 && route.name !== 'place-detail'
+  return count > 0 && route.name !== 'place-detail' && route.name !== 'account'
 })
 
 const mainClass = computed(() => {

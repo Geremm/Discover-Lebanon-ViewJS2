@@ -26,15 +26,33 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted } from 'vue'; // Import de ref et onMounted
 import { useFavorites } from '@/store/favorites.js';
-import { allItems } from '@/data/database.js';
 import ItemCard from '@/components/ItemCard.vue';
+import api from '@/services/api.js'; // Import de l'API
 
 const { favoriteSet } = useFavorites();
+const allItems = ref([]); // On initialise avec un tableau vide
+const loading = ref(true);
 
-// On filtre la base de données entière pour ne garder que les favoris
+// Fonction pour charger tous les items depuis le serveur
+const fetchAllItems = async () => {
+  try {
+    const data = await api.getAllItems();
+    allItems.value = data;
+  } catch (error) {
+    console.error("Erreur chargement favoris:", error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchAllItems();
+});
+
+// Le calcul se fait maintenant sur la variable réactive allItems.value
 const favoritedItems = computed(() => {
-  return allItems.filter(item => favoriteSet.value.has(item.id));
+  return allItems.value.filter(item => favoriteSet.value.has(item.id));
 });
 </script>

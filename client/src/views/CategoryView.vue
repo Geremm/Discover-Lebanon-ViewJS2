@@ -19,6 +19,8 @@
       No results found.
     </div>
 
+    <div id="toast2" class="toast2"></div>
+
     <section v-for="(items, subCategory) in itemsBySubCategory" :key="subCategory" :id="subCategory" class="place-section">
       <h2>{{ subCategoryTitles[subCategory]}}</h2>
       <div class="destinations-grid">
@@ -37,13 +39,31 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { allItems } from '@/data/database.js';
+import { ref, computed, onMounted, watch } from 'vue';
 import ItemCard from '@/components/ItemCard.vue';
+import api from '@/services/api.js';
+
+const items = ref([]);
+const loading = ref(true);
+
 
 const props = defineProps({
   category: String
 });
+
+const allItems = async () => {
+  loading.value = true;
+  
+  try {
+    const data = await api.getItemsByCategory(props.category);
+    items.value = data; 
+
+  } catch (error) {
+    console.error("Erreur chargement:", error);
+  } finally {
+    loading.value = false;
+  }
+};
 
 
 const titles = {places:"Explore the Most Iconic Places in Lebanon", hotels: 'Our Finest Hotels', restaurants: 'A Taste of Lebanon', activities: 'Unforgettable Activities' };
@@ -76,10 +96,9 @@ const searchTerm = ref('');
 
 
 const filteredItems = computed(() => {
-  if (!searchTerm.value) {
-    return allItems;
-  }
-  return allItems.filter(item =>
+  if (!searchTerm.value) return items.value;
+  
+  return items.value.filter(item => 
     item.name.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
     item.shortDesc.toLowerCase().includes(searchTerm.value.toLowerCase())
   );
@@ -98,6 +117,14 @@ const itemsBySubCategory = computed(() => {
     acc[key].push(item);
     return acc;
   }, {});
+});
+
+onMounted(() => {
+  allItems();
+});
+
+watch(() => props.category, () => {
+  allItems();
 });
 
 
