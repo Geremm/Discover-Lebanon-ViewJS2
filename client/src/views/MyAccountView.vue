@@ -1,92 +1,172 @@
 <template>
-  <div class="account-page">
-    <header class="top-bar">
-    </header>
+  <div class="account-shell">
+    <div class="account-bg-blob"></div>
 
-    <div class="content">
-      <!-- SIDEBAR -->
-      <aside class="sidebar">
-        <ul>
-          <h1 class="user-short" v-if="user.name"> Hello,<br> {{ user.name }}</h1>
-        </ul>
-        <ul>
-          <li 
-            :class="{ active: activeTab === 'info' }"
-            @click="activeTab = 'info'"
-          >
-            Information
-          </li>
+    <div class="account-layout">
+      <aside class="account-sidebar">
+        <div class="account-profile-card">
+          <div class="avatar-wrapper">
+            <div class="avatar-circle">
+              <span>{{ userInitials }}</span>
+            </div>
+            <div class="avatar-hello">Hello</div>
+          </div>
 
-          <li
-            :class="{ active: activeTab === 'favourites' }"
-            @click="activeTab = 'favourites'"
-          >
-            Favorites
-          </li>
+          <div class="profile-text">
+            <h2 class="profile-name">{{ user.name || 'Traveler' }}</h2>
+            <p class="profile-email">{{ user.email }}</p>
+            <p class="profile-tagline">Ready for your next Lebanese escape 🌿</p>
+          </div>
 
-          <li
-            :class="{ active: activeTab === 'orders' }"
-            @click="activeTab = 'orders'"
+          <div class="profile-badges">
+            <span class="badge-chip">Member</span>
+            <span class="badge-chip badge-chip-gold">
+              {{ orders.length }} trip{{ orders.length > 1 ? 's' : '' }} planned
+            </span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button
+            v-for="item in sidebarItems"
+            :key="item.key"
+            class="sidebar-link"
+            :class="{ active: activeTab === item.key }"
+            @click="activeTab = item.key"
           >
-            Orders
-          </li>
-          
-          <li
-            :class="{ active: activeTab === 'security' }"
-            @click="activeTab = 'security'"
-          >
-            Security
-          </li>
-        </ul>
+            <span class="sidebar-icon">{{ item.icon }}</span>
+            <span class="sidebar-label">{{ item.label }}</span>
+          </button>
+        </nav>
+        <button class="logout-btn-red" @click="handleLogout">Logout</button>
       </aside>
 
-      <main class="main-content">
-        <!-- INFO -->
-        <section v-if="activeTab === 'info'">
-          
+      <!-- =============== RIGHT PANE =============== -->
+      <main class="account-main">
+        <!-- Top cards row - changes with tab -->
+        <section class="top-cards" v-if="activeTab === 'info'">
+          <div class="top-card">
+            <div class="top-card-icon">👤</div>
+            <div>
+              <h3>My Account</h3>
+              <p>Edit your details and see your profile overview.</p>
+            </div>
+          </div>
 
-          <h2>Account Information</h2>
+          <div class="top-card">
+            <div class="top-card-icon">⭐️</div>
+            <div>
+              <h3>Favorites</h3>
+              <p>{{ favoritedItems.length }} place{{ favoritedItems.length !== 1 ? 's' : '' }} saved across Lebanon.</p>
+            </div>
+          </div>
 
-          <div class="info-box">
-            <p><strong>Name:</strong> {{ user.name }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>User ID:</strong> {{ user.id }}</p>
+          <div class="top-card">
+            <div class="top-card-icon">🧳</div>
+            <div>
+              <h3>Trips & Orders</h3>
+              <p>{{ orders.length }} reservation{{ orders.length !== 1 ? 's' : '' }} in your history.</p>
+            </div>
           </div>
         </section>
 
-        <!-- FAVOURITES : même logique que FavoriteView -->
-        <section v-else-if="activeTab === 'favourites'">
-          <h2>Your Favorites</h2>
-          <p class="subtitle">Here are all the places you've saved.</p>
-
-          <section v-if="favoritedItems.length > 0">
-            <div class="destinations-grid">
-              <ItemCard
-                v-for="item in favoritedItems"
-                :key="item.id"
-                :id="item.id"
-                :category="item.category"
-                :title="item.name"
-                :description="item.shortDesc"
-                :image="item.imageUrl"
-              />
+        <!-- CONTENT: INFO -->
+        <section v-if="activeTab === 'info'" class="panel">
+          <header class="panel-header">
+            <div>
+              <h2>Account Information</h2>
+              <p>Personal details used for your Discover Lebanon experience.</p>
             </div>
-          </section>
+          </header>
 
-          <section v-else>
-            <p class="empty-text">You have no favorites yet.</p>
-          </section>
+          <div class="info-grid">
+            <div class="info-card">
+              <h3>Profile</h3>
+              <div class="info-row">
+                <span class="info-label">Name</span>
+                <span class="info-value">{{ user.name }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ user.email }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">User ID</span>
+                <span class="info-value">#{{ user.id }}</span>
+              </div>
+            </div>
+
+            <div class="info-card soft-card">
+              <h3>Travel snapshot</h3>
+              <div class="stats-row">
+                <div class="stat-pill">
+                  <span class="stat-label">Favorites</span>
+                  <span class="stat-value">{{ favoritedItems.length }}</span>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-label">Trips</span>
+                  <span class="stat-value">{{ orders.length }}</span>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-label">Member since</span>
+                  <span class="stat-value">2025</span>
+                </div>
+              </div>
+              <p class="info-note">
+                Keep exploring Lebanon — the more you save and book, the richer this overview becomes ✨
+              </p>
+            </div>
+          </div>
         </section>
 
-        <!-- ORDERS -->
-        <section v-else-if="activeTab === 'orders'">
-          <h2>Orders</h2>
+        <!-- CONTENT: FAVORITES -->
+        <section v-else-if="activeTab === 'favourites'" class="panel">
+          <header class="panel-header">
+            <div>
+              <h2>Your Favorites</h2>
+              <p>All the places, hotels, restaurants and activities you’ve hearted.</p>
+            </div>
+          </header>
 
-          <div v-if="orders.length" class="info-box">
-            <table class="table">
+          <div v-if="favoritedItems.length" class="favorites-grid">
+            <ItemCard
+              v-for="item in favoritedItems"
+              :key="item.id"
+              :id="item.id"
+              :category="item.category"
+              :title="item.name"
+              :description="item.shortDesc"
+              :image="item.imageUrl"
+            />
+          </div>
+
+          <div v-else class="empty-state">
+            <div class="empty-illustration">🤍</div>
+            <h3>No favorites yet</h3>
+            <p>
+              Start exploring and tap the little heart on places you love.
+              We’ll keep them safe for your next trip.
+            </p>
+            <router-link to="/places" class="empty-btn">
+              Discover places
+            </router-link>
+          </div>
+        </section>
+
+        <!-- CONTENT: ORDERS -->
+        <section v-else-if="activeTab === 'orders'" class="panel">
+          <header class="panel-header">
+            <div>
+              <h2>Your Orders</h2>
+              <p>Overview of your trip reservations and bookings.</p>
+            </div>
+          </header>
+
+          <div v-if="orders.length" class="table-card">
+            <table class="orders-table">
               <thead>
                 <tr>
-                  <th>Order #</th>
+                  <th>Order</th>
                   <th>Date</th>
                   <th>Status</th>
                   <th>Total</th>
@@ -97,7 +177,7 @@
                   <td>#{{ order.id }}</td>
                   <td>{{ order.date }}</td>
                   <td>
-                    <span :class="['status', 'status-' + order.status]">
+                    <span :class="['status-badge', 'status-' + order.status]">
                       {{ order.statusLabel }}
                     </span>
                   </td>
@@ -107,74 +187,95 @@
             </table>
           </div>
 
-          <p v-else class="empty-text">
-            You have no orders yet.
-          </p>
+          <div v-else class="empty-state">
+            <div class="empty-illustration">🧳</div>
+            <h3>No trips booked yet</h3>
+            <p>
+              Plan your first Lebanese escape and your reservations will appear here.
+            </p>
+            <router-link to="/plan-your-trip" class="empty-btn">
+              Plan a trip
+            </router-link>
+          </div>
         </section>
 
-        <!-- SECURITY -->
-        <section v-else-if="activeTab === 'security'">
-          <h2>Security</h2>
+        <!-- CONTENT: SECURITY -->
+        <section v-else-if="activeTab === 'security'" class="panel">
+          <header class="panel-header">
+            <div>
+              <h2>Security</h2>
+              <p>Keep your account safe with a strong password.</p>
+            </div>
+          </header>
 
-          <div class="info-box">
-            <h3 class="change">Change password</h3>
-
-            <form class="form" @submit.prevent="updatePassword">
-              <div class="form-group">
-                <label for="currentPassword">Current password</label>
-                <input
-                  id="currentPassword"
-                  v-model="securityForm.currentPassword"
-                  type="password"
-                  class="input"
-                  required
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="newPassword">New password</label>
-                <input
-                  id="newPassword"
-                  v-model="securityForm.newPassword"
-                  type="password"
-                  class="input"
-                  required
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="confirmPassword">Confirm new password</label>
-                <input
-                  id="confirmPassword"
-                  v-model="securityForm.confirmPassword"
-                  type="password"
-                  class="input"
-                  required
-                />
-              </div>
-
-              <p v-if="securityError" class="error-text">
-                {{ securityError }}
-              </p>
-              <p v-if="securitySuccess" class="success-text">
-                {{ securitySuccess }}
+          <div class="security-layout">
+            <div class="info-card">
+              <h3>Password</h3>
+              <p class="info-note">
+                Choose a unique password you don’t reuse on other websites.
               </p>
 
-              <button type="submit" class="btn-primary">
-                Update password
-              </button>
-            </form>
+              <form class="form" @submit.prevent="updatePassword">
+                <div class="form-group">
+                  <label for="currentPassword">Current password</label>
+                  <input
+                    id="currentPassword"
+                    v-model="securityForm.currentPassword"
+                    type="password"
+                    class="input"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="newPassword">New password</label>
+                  <input
+                    id="newPassword"
+                    v-model="securityForm.newPassword"
+                    type="password"
+                    class="input"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="confirmPassword">Confirm new password</label>
+                  <input
+                    id="confirmPassword"
+                    v-model="securityForm.confirmPassword"
+                    type="password"
+                    class="input"
+                    required
+                  />
+                </div>
+
+                <p v-if="securityError" class="feedback feedback-error">
+                  {{ securityError }}
+                </p>
+                <p v-if="securitySuccess" class="feedback feedback-success">
+                  {{ securitySuccess }}
+                </p>
+
+                <button type="submit" class="primary-btn">
+                  Update password
+                </button>
+              </form>
+            </div>
+
+            <div class="info-card soft-card">
+              <h3>Tips for a safer account</h3>
+              <ul class="tips-list">
+                <li>Use at least 8–12 characters with letters, numbers and symbols.</li>
+                <li>Avoid using your name, email or easy words.</li>
+                <li>Never share your password, even if someone claims to be support.</li>
+              </ul>
+            </div>
           </div>
         </section>
       </main>
     </div>
   </div>
 </template>
-
-
-
-
-
 
 <script setup>
 import { ref, onMounted, computed } from "vue"
@@ -193,14 +294,22 @@ const user = ref({
   email: ""
 })
 
-/* ----- FAVOURITES (même logique que ta FavoriteView) ----- */
+/* ----- SIDEBAR ITEMS ----- */
+const sidebarItems = [
+  { key: "info", label: "Overview", icon: "🏠" },
+  { key: "favourites", label: "Favorites", icon: "❤️" },
+  { key: "orders", label: "Trips", icon: "🧳" },
+  { key: "security", label: "Security", icon: "🔐" }
+]
+
+/* ----- FAVOURITES ----- */
 const { favoriteSet } = useFavorites()
 
 const favoritedItems = computed(() => {
   return allItems.filter(item => favoriteSet.value.has(item.id))
 })
 
-/* ----- ORDERS (exemple de données mock) ----- */
+/* ----- ORDERS (mock data for now) ----- */
 const orders = ref([
   {
     id: "2025-001",
@@ -242,7 +351,7 @@ const updatePassword = () => {
     return
   }
 
-  // TODO : appel API vers ton backend
+  // TODO: call backend here
   console.log("Change password payload:", {
     currentPassword: securityForm.value.currentPassword,
     newPassword: securityForm.value.newPassword
@@ -254,6 +363,19 @@ const updatePassword = () => {
   securityForm.value.newPassword = ""
   securityForm.value.confirmPassword = ""
 }
+
+
+
+/* ----- USER INITIALS FOR AVATAR ----- */
+const userInitials = computed(() => {
+  if (!user.value.name) return "DL"
+  return user.value.name
+    .split(" ")
+    .filter(Boolean)
+    .map(part => part[0]?.toUpperCase())
+    .slice(0, 2)
+    .join("")
+})
 
 /* ----- AUTH CHECK ----- */
 onMounted(() => {
@@ -269,179 +391,425 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ===== LAYOUT SHELL ===== */
+.account-shell {
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #f6f1dd 0, #fdfdfb 40%, #ffffff 100%);
+  padding: 40px 0;
+}
 
-.account-page {
+.account-bg-blob {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.18) 0, transparent 45%),
+    radial-gradient(circle at 90% 80%, rgba(104, 120, 93, 0.18) 0, transparent 45%);
+  z-index: 0;
+}
+
+.account-layout {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 32px;
+}
+
+/* ===== SIDEBAR ===== */
+.account-sidebar {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 26px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+  padding: 22px 20px 20px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  gap: 24px;
+  border: 1px solid rgba(225, 219, 196, 0.9);
 }
 
-/* TOP BAR */
-.top-bar {
-  height: 80px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 30px;
-  background-color: #b1b18e;
-  color: white;
-}
-
-.top-bar h1 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.user-short {
-  font-family: 'Playfair Display', serif;
-  font-size: 30px;
-  padding-bottom: 10%;
-  padding-left: 7%;
-  opacity: 0.9;
-  color: #000000;
-}
-
-p {
-  color: black;
-}
-
-/* Content layout */
-.content {
-  display: flex;
-  flex: 1;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 220px;
-  background-color: #f5f7fa;
-  border-right: 1px solid #dce1e8;
-  padding-top: 20px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar li {
-  padding: 14px 20px;
-  cursor: pointer;
-  font-size: 16px;
-  color: #333;
-  transition: 0.2s;
-}
-
-.sidebar li:hover {
-  background-color: #e6ecf5;
-}
-
-.sidebar li.active {
-  font-weight: bold;
-  background-color: #dde7f4;
-  border-left: 7px solid #e0e0b6;
-}
-
-/* Main content */
-.main-content {
-  flex: 1;
-  padding-top: 30px;            
-}
-
-
-.main-content > section {
-  padding: 0 4% 40px 4%;       
-}
-
-.main-content h2 {
-  color: black;
-  margin: 0 0 8px 0;              
-}
-
-.subtitle {
-  padding-top:1%;
-  margin: 0 0 18px 0;
-  color: #555;
-}
-
-/* Boxes & grids */
-.info-box {
-  margin-top: 15px;              
-  padding: 20px;
-  background: #f9fbfd;
-  border: 1px solid #e1e7ef;
-  border-radius: 8px;
-  color: #000000;
-}
-.info-box p + p {
-  margin-top: 1%;    /* ajoute un espace à partir du 2e <p> */
-}
-
-.change {
-  margin-bottom: 4%;
-}
-
-.destinations-grid {
-  margin: 24px 0 0 0;                   
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 100%));
-  
-  justify-content: flex-start;        
-  justify-items: start;                
-}
-
-
-
-/* Empty text */
-.empty-text {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #555;
-}
-
-/* Table */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.table th,
-.table td {
-  padding: 10px 8px;
-  text-align: left;
-  border-bottom: 1px solid #e1e7ef;
-}
-
-.table th {
-  font-weight: 600;
-}
-
-/* Status badges */
-.status {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-}
-
-.status-completed {
-  background-color: #e3f7e5;
-  color: #137333;
-}
-
-.status-pending {
-  background-color: #fff4ce;
-  color: #8a6d1b;
-}
-
-/* Form */
-.form {
+.account-profile-card {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.avatar-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.avatar-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #b1b18e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 22px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+}
+
+.avatar-hello {
+  background: #fff;
+  color: #b36b00;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+.profile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #2c2c2c;
+}
+
+.profile-email {
+  margin: 0;
+  font-size: 13px;
+  color: #7b7b7b;
+}
+
+.profile-tagline {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #5c5c5c;
+}
+
+.profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.badge-chip {
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f0f3e9;
+  color: #556056;
+}
+
+.badge-chip-gold {
+  background: #fff6dd;
+  color: #8c6a18;
+}
+
+/* sidebar nav */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-link {
+  border: none;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #444;
+  transition: all 0.2s ease;
+}
+
+.sidebar-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-link.active {
+  background: linear-gradient(135deg, #d4af37, #b1b18e);
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.sidebar-link.active .sidebar-icon {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== MAIN ===== */
+.account-main {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 26px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(231, 225, 205, 0.9);
+  padding: 26px 26px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Top cards row */
+.top-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.top-card {
+  background: #f9f6ec;
+  border-radius: 20px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.top-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #d4af37, #b1b18e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.top-card h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #333;
+}
+
+.top-card p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: #666;
+}
+
+/* Panel */
+.panel {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 20px 20px 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #222;
+}
+
+.panel-header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #777;
+}
+
+/* Info cards */
+.info-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.info-card {
+  background: #fdfdfd;
+  border-radius: 18px;
+  padding: 16px 16px 18px;
+  border: 1px solid #ece7d6;
+}
+
+.info-card h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #333;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px dashed #eee4ce;
+  font-size: 13px;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #777;
+}
+
+.info-value {
+  font-weight: 600;
+  color: #333;
+}
+
+.soft-card {
+  background: #fbfaf5;
+}
+
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.stat-pill {
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #eee1c9;
+  min-width: 90px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: #8b7a53;
+}
+
+.stat-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #3b3b2a;
+}
+
+.info-note {
   margin-top: 10px;
+  font-size: 12px;
+  color: #7d7d7d;
+}
+
+/* Favorites */
+.favorites-grid {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px 16px 10px;
+}
+
+.empty-illustration {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.empty-state h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  color: #333;
+}
+
+.empty-state p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+.empty-btn {
+  display: inline-block;
+  padding: 9px 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #d4af37, #b1b18e);
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Orders table */
+.table-card {
+  border-radius: 18px;
+  border: 1px solid #efe6cf;
+  background: #fdfbf5;
+  padding: 12px 14px;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 10px 8px;
+  text-align: left;
+}
+
+.orders-table thead th {
+  font-weight: 600;
+  color: #555;
+  border-bottom: 1px solid #efe3c8;
+}
+
+.orders-table tbody tr:nth-child(even) {
+  background: rgba(255, 250, 237, 0.7);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.status-completed {
+  background: #e5f7ec;
+  color: #1d6b3d;
+}
+
+.status-pending {
+  background: #fff4d6;
+  color: #94621b;
+}
+
+/* Security */
+.security-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
 }
 
 .form-group {
@@ -450,40 +818,143 @@ p {
   gap: 4px;
 }
 
+label {
+  font-size: 13px;
+  color: #444;
+}
+
 .input {
-  padding: 8px 10px;
-  border-radius: 4px;
-  border: 1px solid #d0d7e2;
-  font-size: 14px;
-}
-
-.error-text {
-  color: #c0392b;
-  font-size: 13px;
-}
-
-.success-text {
-  color: #2e7d32;
-  font-size: 13px;
-}
-
-/* Button */
-.btn-primary {
-  padding: 9px 36px;
-  background: linear-gradient(to right, #dedede, #b1b18e);
-  font-size: 1em;
-  font-weight: bold;
+  padding: 9px 10px;
   border-radius: 10px;
-  text-decoration: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  transition: 0.6s ease;
-  margin-top: 5%;
+  border: 1px solid #e0d5bf;
+  font-size: 13px;
+  background: #fffdf7;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #c7a44b;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.18);
+}
+
+.feedback {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.feedback-error {
+  color: #c0392b;
+}
+
+.feedback-success {
+  color: #2e7d32;
+}
+
+.primary-btn {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 9px 26px;
+  border-radius: 999px;
   border: none;
-}
-
-.btn-primary:hover {
-  transform: scale(1.01);
   cursor: pointer;
+  background: linear-gradient(135deg, #3b4a3f, #1f2622);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 13px 24px rgba(0, 0, 0, 0.2);
 }
 
+/* Tips list */
+.tips-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #6a6a6a;
+}
+
+.tips-list li + li {
+  margin-top: 4px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 950px) {
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .account-sidebar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+  }
+
+  .account-profile-card {
+    flex: 1;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 260px;
+  }
+
+  .sidebar-link {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 720px) {
+  .info-grid,
+  .security-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .account-main {
+    padding: 20px 16px 22px;
+  }
+
+  .panel {
+    padding: 16px 14px 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .account-shell {
+    padding: 20px 10px 24px;
+  }
+
+  .account-sidebar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sidebar-nav {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  /* ===== LOGOUT BUTTON ===== */
+  .logout-btn-red {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px 0;
+  border: none;
+  border-radius: 12px;
+  background: #ff4b4b;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 15px rgba(255, 0, 0, 0.2);
+  transition: 0.25s ease;
+}
+
+.logout-btn-red:hover {
+  background: #e63c3c;
+  transform: translateY(-1px);
+}
+
+
+}
 </style>

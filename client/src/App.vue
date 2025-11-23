@@ -26,7 +26,7 @@ console.log(favoriteIds.value.length);
 const route = useRoute();
 
 const showFooter = computed(() => {
-  return route.name !== 'place-detail' && route.name !== 'chatbot' && route.name !== 'activity-detail' && route.name !== 'hotel-detail' && route.name !== 'restaurant-detail';
+  return route.name !== 'place-detail' && route.name !== 'chatbot' && route.name !== 'activity-detail' && route.name !== 'hotel-detail' && route.name !== 'restaurant-detail' && route.name !== 'login' && route.name !== 'register' && route.name !== 'account';
 });
 
 const showFavBtn = computed(() => {
