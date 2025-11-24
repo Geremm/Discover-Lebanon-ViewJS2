@@ -12,7 +12,7 @@ const port = 3000;
 
 const JWT_SECRET = "KhazzDiscoverChris17";
 
-app.use(cors({origin: "http://localhost:8081"})); 
+app.use(cors({origin: "http://localhost:8080"})); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -48,7 +48,7 @@ app.get('/api/item/:id', (req, res) => {
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "",
   database: "efrei",
   port: 3306
 });
