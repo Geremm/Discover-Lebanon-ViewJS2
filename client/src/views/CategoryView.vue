@@ -19,8 +19,6 @@
       No results found.
     </div>
 
-    <div id="toast2" class="toast2"></div>
-
     <section v-for="(items, subCategory) in itemsBySubCategory" :key="subCategory" :id="subCategory" class="place-section">
       <h2>{{ subCategoryTitles[subCategory]}}</h2>
       <div class="destinations-grid">

@@ -717,7 +717,7 @@ html {
 .favorite-icon.favorited {
   color: #e63946;
 }
-.toast {
+.toast2 {
   position: fixed;
   bottom: 30px;
   left: 50%;
@@ -734,7 +734,7 @@ html {
   z-index: 10000;
 }
 
-.toast.show {
+.toast2.show {
   opacity: 1;
   transform: translateX(-50%) translateY(-10px);
 }
