@@ -9,6 +9,10 @@
       <p>{{ description }}</p> <span class="learn-more">Learn more →</span>
     </router-link>
   </div>
+
+    <div id="toast2" class="toast2" :class="{ show: isToastVisible }">
+      {{ toastMessage }}
+    </div>
 </template>
 
 <script setup>
@@ -25,6 +29,9 @@ const props = defineProps({
   image: String
 });
 
+const isToastVisible = ref(false);
+const toastMessage = ref("");
+
 // On récupère les fonctions et les données du store
 const { favoriteSet, toggleFavorite } = useFavorites();
 
@@ -36,9 +43,27 @@ const detailsLink = computed(() => {
   return `/${props.category}/${props.id}`; 
 });
 
-// 2. SUPPRIMER la fonction locale qui ne fait rien et créait un conflit.
-// Le @click dans le template appellera maintenant directement la fonction
-// "toggleFavorite" importée depuis le store.
+function showToast(message) {
+  console.log("Setting toast message:", message);
+  
+  toastMessage.value = message;
+  isToastVisible.value = true;
+
+  setTimeout(() => {
+    isToastVisible.value = false;
+    console.log("Hiding toast");
+  }, 2000);
+}
+
+const handleToggle = () => {
+  toggleFavorite(props.id);
+
+  if (isFavorited.value) {
+    showToast("Added to Favorites!");
+  } else {
+    showToast("Removed from Favorites");
+  }
+};
 </script>
 
 <style scoped>

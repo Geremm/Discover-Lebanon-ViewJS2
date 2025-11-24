@@ -18,7 +18,7 @@
 
         <h2 class="fw-bold item-title">{{ item.title }}</h2>
         <p class="item-desc">{{ item.longDesc }}</p>
-        <p class="item-phone" v-html="phoneHtml"></p>
+        <div class="popup-phone" v-html="phoneHtml"></div>
       </div>
 
       <div class="col-lg-6">
@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, toRaw } from 'vue';
 import { useRoute } from 'vue-router';
 import L from 'leaflet';
 import { Carousel } from 'bootstrap'; 
@@ -73,7 +73,8 @@ const loadItem = async () => {
 // --- Computed Properties ---
 const phoneHtml = computed(() => {
   if (!item.value?.phone) return '';
-  return `<i class="bi bi-telephone-fill"></i> <a href="tel:${item.value.phone}">${item.value.phone}</a>`;
+  return `<i class="bi bi-telephone-fill"></i>
+          <a href="tel:${item.value.phone}">${item.value.phone}</a>`;
 });
 
 // --- Fonctions d'initialisation ---
@@ -110,32 +111,30 @@ function initializeComponent() {
     
     const marker = L.marker([item.value.lat, item.value.lng], { icon: redIcon }).addTo(mapInstance);
     
-    // --- CONSTRUCTION DU POPUP ---
+   // --- CONSTRUCTION DU POPUP (Version Propre) ---
     
-    // 1. Choix de l'image : on prend la 1ère du carrousel, sinon l'image principale
+    // 1. Choix de l'image
     const popupImage = (item.value.carouselImages && item.value.carouselImages.length > 0) 
       ? item.value.carouselImages[0] 
       : item.value.imageUrl;
 
-    // 2. Gestion du téléphone (pour ne pas afficher "undefined" ou une ligne vide)
-    // On remet aussi les styles inline de votre code original (couleur #d9534f)
+    // 2. Gestion du téléphone
     let phoneSection = '';
     if (item.value.phone) {
       phoneSection = `
-        <p class="phone" style="margin-top: 5px;">
-          <i class="bi bi-telephone-fill" style="color: #d9534f; margin-right: 6px;"></i>
-          <a href="tel:${item.value.phone}" style="color: #d9534f; text-decoration: none;">
-            ${item.value.phone}
-          </a>
-        </p>
+        <div class="popup-phone">
+          <i class="bi bi-telephone-fill"></i>
+          <a href="tel:${item.value.phone}">${item.value.phone}</a>
+        </div>
       `;
     }
 
+    // 3. HTML final simplifié
     const popupHTML = `
-      <div class="map-popup" style="text-align: center;">
-        <img src="${popupImage}" alt="${item.value.name}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px;" />
-        <h5 style="margin: 0 0 5px 0; font-size: 1rem; font-weight: bold;">${item.value.name}</h5>
-        <p style="margin: 0; font-size: 0.9rem; color: #555;">${item.value.shortDesc || ''}</p>
+      <div class="popup-content">
+        <img src="${popupImage}" alt="${item.value.name}" class="popup-img" />
+        <h5 class="popup-title">${item.value.title}</h5>
+        <p class="popup-desc">${item.value.shortDesc || ''}</p>
         ${phoneSection}
       </div>
     `;
@@ -143,17 +142,22 @@ function initializeComponent() {
     marker.bindPopup(popupHTML, {
       offset: L.point(0, -30),
       maxWidth: 250,
-      className: 'custom-popup'
+      className: 'custom-popup-wrapper' // On donne une classe au conteneur global Leaflet
     }).openPopup();
-    
+
     // Correction du bug d'affichage Leaflet
     setTimeout(() => mapInstance.invalidateSize(), 100);
 
     // --- B. Initialisation du Carrousel ---
-    carouselInstance = new Carousel(carouselElement.value, {
-      interval: 3000,
-      ride: 'carousel'
-    });
+    if (carouselElement.value) {
+      // On récupère l'élément HTML brut sans la couche de réactivité Vue
+      const rawCarouselElement = toRaw(carouselElement.value);
+      
+      carouselInstance = new Carousel(rawCarouselElement, {
+        interval: 3000,
+        ride: 'carousel'
+      });
+    }
   }
 }
 
@@ -176,34 +180,39 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* --- Imports CSS --- */
-/* Ces styles ne seront chargés que lorsque ce composant est affiché */
+/* 1. LES IMPORTS DOIVENT ÊTRE EN PREMIER ABSOLU */
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 @import 'leaflet/dist/leaflet.css';
-</style>
 
-<style scoped>
-/* Vos styles spécifiques à ce composant */
+/* 2. Styles propres au composant (Scoped) */
 .container {
   padding-top: 50px;
   color: #333;
 }
-.carousel-inner img {
-  border-radius: 8px;
-  height: 350px;
-  object-fit: cover;
-}
+
 .not-found {
   text-align: center;
   padding: 5rem;
   color: #333;
 }
-.item-title, .item-desc, .item-phone {
-  color: #333;
+
+/* --- Carousel --- */
+.carousel {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #ccc;
 }
 
+.carousel-inner img {
+  border-radius: 8px; /* Attention: redondant avec .carousel overflow hidden, mais ok */
+  height: 350px;
+  width: 100%;
+  object-fit: cover;
+  transition: opacity 0.5s ease-in-out;
+}
 
+/* --- Carte --- */
 #map {
   height: 400px;
   width: 100%;
@@ -212,26 +221,12 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-
 .card-body.p-0 {
   padding: 0 !important;
   overflow: hidden;
 }
 
-
-.carousel {
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid #ccc;
-}
-
-.carousel-inner img {
-  object-fit: cover;
-  height: 300px;
-  width: 100%;
-  transition: opacity 0.5s ease-in-out;
-}
-
+/* --- Détails de l'item (Gauche) --- */
 .item-title {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
@@ -248,15 +243,16 @@ onUnmounted(() => {
 .item-phone {
   font-size: 1.05rem;
   margin-top: 10px;
+  color: #d9534f;
 }
 
 .item-phone i {
-  color: #d9230f;
+  color: #d9534f; /* Corrigé pour uniformité (d9230f vs d9534f) */
   margin-right: 8px;
 }
 
 .item-phone a {
-  color: #d9230f;
+  color: #d9534f;
   text-decoration: none;
 }
 
@@ -264,46 +260,32 @@ onUnmounted(() => {
   text-decoration: underline;
 }
 
-.map-popup {
-     max-width: 270px;
-    text-align: center;
+@media (max-width: 576px) {
+  .item-title {
+    font-size: 1.5rem;
+  }
+}
+</style>
 
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.map-popup img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 6px;
-  margin-bottom: 8px;
+/* --- Styles Leaflet Globaux --- */
+.leaflet-container {
+  background-color: #f8f9fa !important;
 }
 
-.map-popup h5 {
-  font-size: 1.1rem;
-  margin-bottom: 5px;
-  font-weight: 600;
+.leaflet-tile {
+  filter: none !important;
 }
 
-.map-popup p {
-  font-size: 0.9rem;
-  color: #333;
-  margin-bottom: 6px;
-}
-
-.map-popup .phone i {
-  color: #d9230f;
-  margin-right: 5px;
-}
-
-.map-popup a {
-  color: #d9230f;
-  text-decoration: none;
-}
-
-.map-popup a:hover {
-  text-decoration: underline;
-}
-
+/* Fix z-index pour éviter que la carte passe au dessus du menu si besoin */
 .leaflet-popup-content-wrapper {
   z-index: 1001 !important;
   border-radius: 12px;
@@ -317,51 +299,62 @@ onUnmounted(() => {
   padding: 0 !important;
 }
 
-.leaflet-popup-tip {
-  z-index: 1000 !important;
+/* --- Styles du contenu du Popup (générés par JS) --- */
+/* Ces classes correspondent à ce que j'ai mis dans le JS "propre" précédent */
+
+.popup-content {
+  text-align: center;
+  max-width: 270px;
 }
 
-.leaflet-marker-icon {
-  z-index: 1002 !important;
+.popup-img {
+  width: 100%;
+  height: 150px; /* Votre hauteur souhaitée */
+  object-fit: cover;
+  border-radius: 6px; /* Retiré le border-radius bas pour coller au design wrapper */
+  margin-bottom: 8px;
+  display: block;
 }
 
-.leaflet-tile {
-  filter: none !important;
+.popup-title {
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+  font-weight: 600;
+  padding: 0 10px; /* Un peu d'air sur les côtés */
 }
 
-.leaflet-container {
-  background-color: #f8f9fa !important;
+.popup-desc {
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 6px;
+  padding: 0 10px;
 }
 
-.leaflet-control-container .leaflet-top.leaflet-left {
-  top: 10px;
-  left: 10px;
+.popup-phone {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  background-color: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.popup-phone i,
+.popup-phone a {
+  color: #d9534f;
+  text-decoration: none;
 }
 
+.popup-phone a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Popup */
 @media (max-width: 576px) {
-  .map-popup img {
+  .popup-img {
     height: 120px;
   }
-
-  .map-popup h5 {
+  .popup-title {
     font-size: 1rem;
   }
-
-  .map-popup p {
+  .popup-desc {
     font-size: 0.85rem;
   }
-
-  .item-title {
-    font-size: 1.5rem;
-  }
 }
-
 </style>
