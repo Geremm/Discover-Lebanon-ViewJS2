@@ -12,7 +12,7 @@ const port = 3000;
 
 const JWT_SECRET = "KhazzDiscoverChris17";
 
-app.use(cors({origin: "http://localhost:8080"})); 
+app.use(cors({origin: "http://localhost:8081"})); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -21,34 +21,35 @@ app.get('/', (req, res) => {
  res.send('Hello World! je suis dans le  /');
 });
 
-app.get('/api/items', (req, res) => {
-    const category = req.query.category; // ex: /api/items?category=hotels
+// app.get('/api/items', (req, res) => {
+//     const category = req.query.category; // ex: /api/items?category=hotels
     
-    if (category) {
-        const filtered = allItems.filter(item => item.category === category);
-        return res.json(filtered);
-    }
+//     if (category) {
+//         const filtered = allItems.filter(item => item.category === category);
+//         return res.json(filtered);
+//     }
     
-    res.json(allItems);
-});
+//     res.json(allItems);
+// });
 
 // 2. Récupérer un item spécifique par son ID
-app.get('/api/item/:id', (req, res) => {
-    const id = parseInt(req.params.id); // Convertir l'ID de l'URL en nombre
-    const item = allItems.find(i => i.id === id);
+
+// app.get('/api/item/:id', (req, res) => {
+//     const id = parseInt(req.params.id); // Convertir l'ID de l'URL en nombre
+//     const item = allItems.find(i => i.id === id);
     
-    if (item) {
-        res.json(item);
-    } else {
-        res.status(404).json({ success: false, message: "Item not found" });
-    }
-});
+//     if (item) {
+//         res.json(item);
+//     } else {
+//         res.status(404).json({ success: false, message: "Item not found" });
+//     }
+// });
 
 
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "root",
   database: "efrei",
   port: 3306
 });
@@ -61,6 +62,84 @@ db.connect(err => {
   }
 });
 
+app.get('/api/items', (req, res) => {
+    const category = req.query.category;
+    
+    // 1. Préparer la requête produits
+    let queryProducts = 'SELECT * FROM products';
+    let params = [];
+
+    if (category) {
+        queryProducts += ' WHERE category = ?';
+        params.push(category);
+    }
+
+    // 2. Première requête : Récupérer les produits
+    db.query(queryProducts, params, (err, products) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false, message: "Erreur DB Produits" });
+        }
+
+        // 3. Deuxième requête : Récupérer TOUTES les images (Callback imbriqué)
+        db.query('SELECT * FROM product_carousel_images', (err2, images) => {
+            if (err2) {
+                console.error(err2);
+                return res.status(500).json({ success: false, message: "Erreur DB Images" });
+            }
+
+            // 4. La fusion (Javascript)
+            // Maintenant qu'on a 'products' et 'images', on les assemble
+            const result = products.map(product => {
+                const productImages = images
+                    .filter(img => img.product_id === product.id)
+                    .map(img => img.image_url);
+
+                return {
+                    ...product,
+                    carouselImages: productImages
+                };
+            });
+
+            // 5. On envoie la réponse
+            console.log("Result /api/items string", result)
+            res.json(result);
+        });
+    });
+});
+
+app.get('/api/item/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+
+    // 1. Première requête : Le produit
+    db.query('SELECT * FROM products WHERE id = ?', [id], (err, rows) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false, message: "Erreur serveur" });
+        }
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Item not found" });
+        }
+
+        const product = rows[0];
+
+        // 2. Deuxième requête : Les images de ce produit
+        db.query('SELECT imageUrl FROM product_carousel_images WHERE product_id = ?', [id], (err2, imageRows) => {
+            if (err2) {
+                console.error(err2);
+                return res.status(500).json({ success: false, message: "Erreur serveur images" });
+            }
+
+            // 3. On ajoute le tableau au produit
+            product.carouselImages = imageRows.map(img => img.imageUrl);
+
+            // 4. On renvoie le 
+            console.log("Result /api/items:id string", product);
+            res.json(product);
+        });
+    });
+});
 function generateToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email },

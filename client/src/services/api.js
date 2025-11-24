@@ -20,6 +20,6 @@ export default {
   },
 
   async getAllItems() {
-    return this._fetchData('/items'); // Appelle l'API pour avoir tout
+    return this._fetchData('/items');
   },
 };
