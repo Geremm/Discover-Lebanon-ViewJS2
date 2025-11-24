@@ -3,7 +3,6 @@
     <div class="account-bg-blob"></div>
 
     <div class="account-layout">
-      
       <aside class="account-sidebar">
         <div class="account-profile-card">
           <div class="avatar-wrapper">
@@ -314,21 +313,20 @@
 import { ref, onMounted, computed } from "vue"
 import { useRouter } from "vue-router"
 
-// Components & Services
-import ItemCard from "@/components/ItemCard.vue"
-import api from "@/services/api.js" 
 import { useFavorites } from "@/store/favorites.js"
+import api from "@/services/api.js" 
+import ItemCard from "@/components/ItemCard.vue"
 
 const router = useRouter()
 const { favoriteSet } = useFavorites()
 
 // UI State
 const activeTab = ref("info")
-const allItems = ref([]) 
+const allItems = ref([])
 const securityError = ref("")
 const securitySuccess = ref("")
 
-// User State (mirrors structure needed for file 2)
+// Local user data
 const user = ref({
   id: "",
   name: "",
@@ -336,7 +334,6 @@ const user = ref({
   role: ""
 })  
 
-// Mock Data for Orders
 const orders = ref([
   {
     id: "2025-001",
@@ -354,16 +351,13 @@ const orders = ref([
   }
 ])
 
-// Password Form State
 const securityForm = ref({
   currentPassword: "",
   newPassword: "",
   confirmPassword: ""
 })
 
-// --- Computed Properties ---
-
-// Dynamically generate sidebar items (injects Admin tab if role matches)
+// Build sidebar items, checking for admin role
 const sidebarItems = computed(() => {
   const items = [
     { key: "info", label: "Overview", icon: "🏠" },
@@ -379,12 +373,10 @@ const sidebarItems = computed(() => {
   return items
 })
 
-// Filter the full items list against our favorites set
 const favoritedItems = computed(() => {
   return allItems.value.filter(item => favoriteSet.value.has(item.id))
 })
 
-// Extract initials for the avatar
 const userInitials = computed(() => {
   if (!user.value.name) return "DL"
   return user.value.name
@@ -395,8 +387,7 @@ const userInitials = computed(() => {
     .join("")
 })
 
-// --- Actions ---
-
+// Methods
 const updatePassword = () => {
   securityError.value = ""
   securitySuccess.value = ""
@@ -411,7 +402,7 @@ const updatePassword = () => {
     return
   }
 
-  // @TODO: Hook this up to real backend endpoint later
+  // TODO: Add backend API call here
   console.log("Change password payload:", {
     currentPassword: securityForm.value.currentPassword,
     newPassword: securityForm.value.newPassword
@@ -419,7 +410,7 @@ const updatePassword = () => {
 
   securitySuccess.value = "Password updated (demo)."
   
-  // Clear form
+  // Reset form
   securityForm.value.currentPassword = ""
   securityForm.value.newPassword = ""
   securityForm.value.confirmPassword = ""
@@ -427,34 +418,32 @@ const updatePassword = () => {
 
 const handleLogout = () => {
   localStorage.removeItem("user")
-  // localStorage.removeItem("token") // Uncomment when using JWT
+  // localStorage.removeItem("token")
   router.push("/login")
 }
 
-// --- Lifecycle ---
-
+// Initialization
 onMounted(async () => {
-  // 1. Check Auth & Load Local User
   const storedUser = localStorage.getItem("user")
-  
+
   if (!storedUser) {
     router.push("/login")
     return
   }
+
   user.value = JSON.parse(storedUser)
 
-  // 2. Fetch Items Data
   try {
     const data = await api.getAllItems()
     allItems.value = data
   } catch (error) {
-    console.error("Error loading items/favorites for account:", error)
+    console.error("Error fetching items:", error)
   }
 })
 </script>
 
 <style scoped>
-/* Main Shell & Backgrounds */
+/* Page Layout */
 .account-shell {
   min-height: 100vh;
   background: radial-gradient(circle at top left, #f6f1dd 0, #fdfdfb 40%, #ffffff 100%);
@@ -479,10 +468,10 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   gap: 32px;
-  padding-top: 1.43%;
+  padding-top:1.43%;
 }
 
-/* Sidebar Styles */
+/* Sidebar */
 .account-sidebar {
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 26px;
@@ -492,7 +481,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 24px;
   border: 1px solid rgba(225, 219, 196, 0.9);
-  height: fit-content; /* Sticky feel */
+  height: fit-content;
 }
 
 .account-profile-card {
@@ -501,7 +490,6 @@ onMounted(async () => {
   gap: 14px;
 }
 
-/* Avatar */
 .avatar-wrapper {
   display: flex;
   align-items: flex-end;
@@ -531,7 +519,6 @@ onMounted(async () => {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
 }
 
-/* Profile Text */
 .profile-text {
   display: flex;
   flex-direction: column;
@@ -557,7 +544,6 @@ onMounted(async () => {
   color: #5c5c5c;
 }
 
-/* Badges */
 .profile-badges {
   display: flex;
   flex-wrap: wrap;
@@ -584,7 +570,6 @@ onMounted(async () => {
   font-weight: bold;
 }
 
-/* Navigation */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -604,7 +589,7 @@ onMounted(async () => {
   font-size: 14px;
   color: #444;
   transition: all 0.2s ease;
-  text-decoration: none;
+  text-decoration: none; 
 }
 
 .sidebar-icon {
@@ -627,7 +612,7 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Content Area */
+/* Main Content Area */
 .account-main {
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 26px;
@@ -640,7 +625,6 @@ onMounted(async () => {
   min-height: 600px; 
 }
 
-/* Top Cards */
 .top-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -712,7 +696,7 @@ onMounted(async () => {
   color: #777;
 }
 
-/* Info Grid / Details */
+/* Account Info Cards */
 .info-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -745,10 +729,18 @@ onMounted(async () => {
   border-bottom: none;
 }
 
-.info-label { color: #777; }
-.info-value { font-weight: 600; color: #333; }
+.info-label {
+  color: #777;
+}
 
-.soft-card { background: #fbfaf5; }
+.info-value {
+  font-weight: 600;
+  color: #333;
+}
+
+.soft-card {
+  background: #fbfaf5;
+}
 
 .stats-row {
   display: flex;
@@ -791,7 +783,6 @@ onMounted(async () => {
   gap: 18px;
 }
 
-/* Empty State */
 .empty-state {
   text-align: center;
   padding: 30px 16px 10px;
@@ -863,10 +854,17 @@ onMounted(async () => {
   font-size: 11px;
 }
 
-.status-completed { background: #e5f7ec; color: #1d6b3d; }
-.status-pending { background: #fff4d6; color: #94621b; }
+.status-completed {
+  background: #e5f7ec;
+  color: #1d6b3d;
+}
 
-/* Security & Forms */
+.status-pending {
+  background: #fff4d6;
+  color: #94621b;
+}
+
+/* Forms */
 .security-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -886,7 +884,10 @@ onMounted(async () => {
   gap: 4px;
 }
 
-label { font-size: 13px; color: #444; }
+label {
+  font-size: 13px;
+  color: #444;
+}
 
 .input {
   padding: 9px 10px;
@@ -902,9 +903,18 @@ label { font-size: 13px; color: #444; }
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.18);
 }
 
-.feedback { font-size: 12px; margin-top: 2px; }
-.feedback-error { color: #c0392b; }
-.feedback-success { color: #2e7d32; }
+.feedback {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.feedback-error {
+  color: #c0392b;
+}
+
+.feedback-success {
+  color: #2e7d32;
+}
 
 .primary-btn {
   align-self: flex-start;
@@ -927,11 +937,15 @@ label { font-size: 13px; color: #444; }
   color: #6a6a6a;
 }
 
-.tips-list li + li { margin-top: 4px; }
+.tips-list li + li {
+  margin-top: 4px;
+}
 
-/* Media Queries */
+/* Responsive */
 @media (max-width: 950px) {
-  .account-layout { grid-template-columns: 1fr; }
+  .account-layout {
+    grid-template-columns: 1fr;
+  }
 
   .account-sidebar {
     flex-direction: row;
@@ -940,7 +954,9 @@ label { font-size: 13px; color: #444; }
     padding: 16px 18px;
   }
 
-  .account-profile-card { flex: 1; }
+  .account-profile-card {
+    flex: 1;
+  }
 
   .sidebar-nav {
     flex-direction: row;
@@ -949,20 +965,31 @@ label { font-size: 13px; color: #444; }
     gap: 8px;
     max-width: 260px;
   }
-  
-  .sidebar-link { padding: 8px 10px; }
+
+  .sidebar-link {
+    padding: 8px 10px;
+  }
 }
 
 @media (max-width: 720px) {
   .info-grid,
-  .security-layout { grid-template-columns: 1fr; }
+  .security-layout {
+    grid-template-columns: 1fr;
+  }
 
-  .account-main { padding: 20px 16px 22px; }
-  .panel { padding: 16px 14px 20px; }
+  .account-main {
+    padding: 20px 16px 22px;
+  }
+
+  .panel {
+    padding: 16px 14px 20px;
+  }
 }
 
 @media (max-width: 520px) {
-  .account-shell { padding: 20px 10px 24px; }
+  .account-shell {
+    padding: 20px 10px 24px;
+  }
 
   .account-sidebar {
     flex-direction: column;
