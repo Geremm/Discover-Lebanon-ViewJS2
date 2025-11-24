@@ -1,7 +1,7 @@
 <template>
   <div class="destination-card">
     <router-link :to="detailsLink" class="card-link">
-      <div class="favorite-icon" :class="{ favorited: isFavorited }" @click.prevent="toggleFavorite(props.id)">
+      <div class="favorite-icon" :class="{ favorited: isFavorited }" @click.prevent="handleToggle()">
       {{ isFavorited ? '♥' : '♡' }}
     </div>
       <img :src="image" :alt="title" />
@@ -9,18 +9,16 @@
       <p>{{ description }}</p> <span class="learn-more">Learn more →</span>
     </router-link>
   </div>
-
+  
     <div id="toast2" class="toast2" :class="{ show: isToastVisible }">
       {{ toastMessage }}
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-// 1. IMPORTER le store des favoris pour pouvoir l'utiliser
+import { ref, computed } from 'vue';
 import { useFavorites } from '@/store/favorites.js';
 
-// On définit toutes les données que ce composant a besoin de recevoir
 const props = defineProps({
   id: Number,
   category: String,
@@ -31,14 +29,9 @@ const props = defineProps({
 
 const isToastVisible = ref(false);
 const toastMessage = ref("");
-
-// On récupère les fonctions et les données du store
 const { favoriteSet, toggleFavorite } = useFavorites();
-
-// Cette propriété calculée vérifie si l'ID de la carte est dans le Set des favoris
 const isFavorited = computed(() => favoriteSet.value.has(props.id));
 
-// Cette propriété calculée construit le lien vers la page de détail
 const detailsLink = computed(() => {
   return `/${props.category}/${props.id}`; 
 });
