@@ -16,6 +16,7 @@
           v-for="dest in topDestinations"
           :key="dest.id"
           :id="dest.id"
+          :category="dest.category"
           :title="dest.name"
           :description="dest.shortDesc"
           :image="dest.imageUrl"
@@ -29,13 +30,23 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
+import api from '@/services/api.js'; 
 import ItemCard from '@/components/ItemCard.vue';
 
-const topDestinations = [
-  { id: 14, name: '📍 Baalbek Temples', shortDesc: 'Explore one of the world’s most impressive Roman ruins.', imageUrl: '/images/baalbek.jpg' },
-  { id: 8, name: '📍 Byblos', shortDesc: 'Stroll through the ancient streets of one of the oldest cities.', imageUrl: '/images/byblos.jpeg' },
-  { id: 6, name: '📍 Cedars of God', shortDesc: 'Breathe in the crisp mountain air among ancient cedar trees.', imageUrl: '/images/cedars.jpeg' }
-];
+const topDestinations = ref([]);
+
+onMounted(async () => {
+  try {
+    const allItems = await api.getAllItems();
+
+    const idsToShow = [14, 8, 6];
+
+    topDestinations.value = allItems.filter(item => idsToShow.includes(item.id));
+  } catch (error) {
+    console.error("Erreur lors du chargement des Top Destinations:", error);
+  }
+});
 </script>
 
 <style scoped>

@@ -1,34 +1,74 @@
-// src/store/favorites.js
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 
-// 1. Crée une variable réactive pour stocker les ID des favoris.
-// On l'initialise en lisant ce qui est déjà sauvegardé dans le localStorage.
-const favoriteIds = ref(JSON.parse(localStorage.getItem('favorites')) || []);
+// VARIABLES D'ÉTAT (State)
+const favoriteItems = ref([]); // La liste complète des objets (avec images, titres...)
+const currentUserId = ref(null);
 
-// 2. Crée un Set pour des recherches rapides. Un `computed` le met à jour automatiquement.
-const favoriteSet = computed(() => new Set(favoriteIds.value));
+// GETTER (Computed) : Pour vérifier rapidement "Est-ce que l'ID 12 est favori ?"
+const favoriteIds = computed(() => {
+    return new Set(favoriteItems.value.map(item => item.id));
+});
 
-// 3. La fonction pour ajouter/retirer un favori.
-function toggleFavorite(itemId) {
-  if (favoriteSet.value.has(itemId)) {
-    // Si l'ID est déjà là, on le retire
-    favoriteIds.value = favoriteIds.value.filter(id => id !== itemId);
-  } else {
-    // Sinon, on l'ajoute
-    favoriteIds.value.push(itemId);
-  }
-}
-
-// 4. On surveille les changements de `favoriteIds` pour mettre à jour le localStorage.
-watch(favoriteIds, (newValue) => {
-  localStorage.setItem('favorites', JSON.stringify(newValue));
-}, { deep: true });
-
-// 5. On exporte tout ce dont nos composants auront besoin.
 export function useFavorites() {
-  return {
-    favoriteIds,
-    favoriteSet,
-    toggleFavorite
-  };
+
+    // A. INITIALISATION (À appeler au login ou au chargement du site)
+    async function initFavorites(user) {
+        if (user && user.id) {
+            // CAS 1 : Utilisateur Connecté -> API
+            currentUserId.value = user.id;
+            try {
+                const res = await fetch(`http://localhost:3000/api/favorites/${user.id}`);
+                const data = await res.json();
+                favoriteItems.value = data;
+            } catch (e) {
+                console.error("Erreur init API favorites:", e);
+            }
+        } else {
+            // CAS 2 : Invité -> LocalStorage
+            currentUserId.value = null;
+            const local = localStorage.getItem('guest_favorites');
+            favoriteItems.value = local ? JSON.parse(local) : [];
+        }
+    }
+
+    // B. ACTION : AJOUTER / RETIRER
+    async function toggleFavorite(item) {
+        // 1. Mise à jour immédiate de l'écran (Optimiste)
+        const exists = favoriteIds.value.has(item.id);
+        if (exists) {
+            favoriteItems.value = favoriteItems.value.filter(i => i.id !== item.id);
+        } else {
+            favoriteItems.value.push(item);
+        }
+
+        // 2. Sauvegarde (API ou LocalStorage)
+        if (currentUserId.value) {
+            try {
+                const url = exists 
+                    ? `http://localhost:3000/api/favorites/${currentUserId.value}/${item.id}` // DELETE
+                    : `http://localhost:3000/api/favorites`; // POST
+                
+                const method = exists ? 'DELETE' : 'POST';
+                const body = exists ? null : JSON.stringify({ userId: currentUserId.value, productId: item.id });
+
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body
+                });
+            } catch (e) {
+                console.error("Erreur API save:", e);
+            }
+        } else {
+            localStorage.setItem('guest_favorites', JSON.stringify(favoriteItems.value));
+        }
+    }
+
+    // C. EXPORT (Ce que les composants peuvent utiliser)
+    return {
+        favoriteItems,
+        favoriteIds,
+        initFavorites,
+        toggleFavorite
+    };
 }

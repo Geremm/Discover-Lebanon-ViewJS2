@@ -38,6 +38,8 @@
 import { ref } from "vue"
 import { useRouter } from "vue-router"
 import { login } from "@/store/auth"
+import { useFavorites } from '@/store/favorites';
+const { initFavorites } = useFavorites();
 
 const email = ref("")
 const password = ref("")
@@ -65,7 +67,11 @@ const onLogin = async () => {
     localStorage.setItem("token", data.token)
     localStorage.setItem("user", JSON.stringify(data.user))
     login(data.user)
+
+    const user = JSON.parse(localStorage.getItem('user')); 
+    initFavorites(user);
     router.push("/")
+
   } catch {
     error.value = "Server unreachable"
   }

@@ -1,18 +1,21 @@
 <template>
   <div class="destination-card">
     <router-link :to="detailsLink" class="card-link">
+      
       <div class="favorite-icon" :class="{ favorited: isFavorited }" @click.prevent="handleToggle()">
-      {{ isFavorited ? '♥' : '♡' }}
-    </div>
+        {{ isFavorited ? '♥' : '♡' }}
+      </div>
+
       <img :src="image" :alt="title" />
       <h3>{{ title }}</h3>
-      <p>{{ description }}</p> <span class="learn-more">Learn more →</span>
+      <p>{{ description }}</p>
+      <span class="learn-more">Learn more →</span>
     </router-link>
   </div>
   
-    <div id="toast2" class="toast2" :class="{ show: isToastVisible }">
+  <div class="toast2" :class="{ show: isToastVisible }">
       {{ toastMessage }}
-    </div>
+  </div>
 </template>
 
 <script setup>
@@ -29,33 +32,34 @@ const props = defineProps({
 
 const isToastVisible = ref(false);
 const toastMessage = ref("");
-const { favoriteSet, toggleFavorite } = useFavorites();
-const isFavorited = computed(() => favoriteSet.value.has(props.id));
 
-const detailsLink = computed(() => {
-  return `/${props.category}/${props.id}`; 
+const { favoriteIds, toggleFavorite } = useFavorites();
+
+const isFavorited = computed(() => {
+    // Sécurité si favoriteIds n'est pas encore chargé
+    return favoriteIds.value ? favoriteIds.value.has(props.id) : false;
 });
 
+const detailsLink = computed(() => `/${props.category}/${props.id}`);
+
 function showToast(message) {
-  console.log("Setting toast message:", message);
-  
   toastMessage.value = message;
   isToastVisible.value = true;
-
-  setTimeout(() => {
-    isToastVisible.value = false;
-    console.log("Hiding toast");
-  }, 2000);
+  setTimeout(() => { isToastVisible.value = false; }, 2000);
 }
 
 const handleToggle = () => {
-  toggleFavorite(props.id);
+  // On reconstruit l'objet pour le store local (important !)
+  toggleFavorite({ 
+    id: props.id, 
+    name: props.title,       // Mapping title -> name
+    imageUrl: props.image,   // Mapping image -> imageUrl
+    category: props.category,
+    shortDesc: props.description // Mapping description -> shortDesc
+  });
 
-  if (isFavorited.value) {
-    showToast("Added to Favorites!");
-  } else {
-    showToast("Removed from Favorites");
-  }
+  if (isFavorited.value) showToast("Added to Favorites!");
+  else showToast("Removed from Favorites");
 };
 </script>
 
