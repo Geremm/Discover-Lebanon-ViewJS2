@@ -17,9 +17,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => {
- res.send('Hello World! je suis dans le  /');
-});
 
 // app.get('/api/items', (req, res) => {
 //     const category = req.query.category; // ex: /api/items?category=hotels
@@ -138,6 +135,58 @@ app.get('/api/item/:id', (req, res) => {
         });
     });
 });
+// 1. API TO SAVE A NEW RESERVATION
+app.post('/api/reserve', (req, res) => {
+  const { userId, productId, date, time, guests, notes } = req.body;
+
+  const sql = `
+    INSERT INTO bookings (user_id, product_id, booking_date, booking_time, guests, notes) 
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(sql, [userId, productId, date, time, guests, notes], (err, result) => {
+    if (err) {
+      console.error("Error saving booking:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    console.log(result);
+    res.status(201).json({ message: "Reservation successful", id: result.insertId });
+  });
+});
+
+// 2. API TO GET RESERVATIONS FOR "MY ACCOUNT"
+// We use JOIN to get the Restaurant/Hotel Name and Image, not just the ID
+// 2. API TO GET RESERVATIONS FOR "MY ACCOUNT"
+app.get('/api/my-bookings/:userId', (req, res) => {
+  const userId = req.params.userId;
+
+  const sql = `
+    SELECT 
+      b.id AS order_id,
+      b.booking_date,
+      b.booking_time,
+      b.guests,
+      b.status,
+      b.notes,
+      -- Ensure these column names match your 'products' table exactly
+      p.title AS product_name,   -- If your column is 'name', change this to p.name
+      p.imageUrl AS product_image, -- If your column is 'image', change this to p.image
+      p.category
+    FROM bookings b
+    JOIN products p ON b.product_id = p.id
+    WHERE b.user_id = ?
+    ORDER BY b.booking_date DESC
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching bookings:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    
+    res.json(results);
+  });
+});
 function generateToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email },
@@ -198,53 +247,65 @@ app.post("/api/login", (req, res) => {
   });
 });
 
+// 1. AJOUTER UN FAVORI
+app.post('/api/favorites', (req, res) => {
+    const { userId, productId } = req.body;
+    // INSERT IGNORE : Si c'est déjà favori, on ne fait rien (pas d'erreur)
+    const sql = "INSERT IGNORE INTO user_favorites (user_id, product_id) VALUES (?, ?)";
+    
+    db.query(sql, [userId, productId], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur DB" });
+        res.json({ success: true, message: "Favori ajouté" });
+    });
+});
+
+// 2. RETIRER UN FAVORI
+app.delete('/api/favorites/:userId/:productId', (req, res) => {
+    const { userId, productId } = req.params;
+    const sql = "DELETE FROM user_favorites WHERE user_id = ? AND product_id = ?";
+    
+    db.query(sql, [userId, productId], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur DB" });
+        res.json({ success: true, message: "Favori retiré" });
+    });
+});
+
+// 3. LISTER LES FAVORIS (Avec détails et images)
+app.get('/api/favorites/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    // A. On récupère les produits liés à ce user
+    const sql = `
+        SELECT p.* FROM products p
+        JOIN user_favorites uf ON p.id = uf.product_id
+        WHERE uf.user_id = ?
+    `;
+
+    db.query(sql, [userId], (err, products) => {
+        if (err) return res.status(500).json({ error: "DB Error" });
+        if (products.length === 0) return res.json([]); // Pas de favoris = tableau vide
+
+        // B. On récupère les images du carrousel pour ces produits
+        db.query('SELECT * FROM product_carousel_images', (err2, images) => {
+            if (err2) return res.status(500).json({ error: "DB Error Images" });
+
+            // C. On fusionne
+            const result = products.map(product => {
+                const productImages = images
+                    .filter(img => img.product_id === product.id)
+                    .map(img => img.imageUrl); // Ton screen montre 'imageUrl'
+
+                return {
+                    ...product, // Copie toutes les colonnes (qui sont déjà en camelCase chez toi)
+                    carouselImages: productImages
+                };
+            });
+
+            res.json(result);
+        });
+    });
+});
+
 app.listen(port, () => {
  console.log(`Server is running at http://localhost:${port}`);
-});
-
-// POST /api/reserve
-app.post('/api/reserve', (req, res) => {
-  const { userId, productId, date, time, guests } = req.body;
-
-  const sql = `
-    INSERT INTO bookings (user_id, product_id, booking_date, booking_time, guests, status) 
-    VALUES (?, ?, ?, ?, ?, 'pending')
-  `;
-
-  db.query(sql, [userId, productId, date, time, guests], (err, result) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Booking failed" });
-    }
-    res.status(201).json({ message: "Reservation successful", bookingId: result.insertId });
-  });
-});
-// GET /api/my-bookings/:userId
-app.get('/api/my-bookings/:userId', (req, res) => {
-  const userId = req.params.userId;
-
-  const sql = `
-    SELECT 
-      b.id as order_id, 
-      b.booking_date, 
-      b.booking_time, 
-      b.status, 
-      b.guests,
-      p.name as product_name, 
-      p.image as product_image, 
-      p.category as product_category,
-      p.price
-    FROM bookings b
-    JOIN product p ON b.product_id = p.id
-    WHERE b.user_id = ?
-    ORDER BY b.booking_date DESC
-  `;
-
-  db.query(sql, [userId], (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Could not fetch bookings" });
-    }
-    res.json(results);
-  });
 });
