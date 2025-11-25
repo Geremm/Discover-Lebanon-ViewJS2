@@ -2,7 +2,8 @@
   <div v-if="item" class="container my-5">
     <div class="row g-4">
       <div class="col-lg-6">
-        <div id="photoCarousel" ref="carouselElement" class="carousel slide mb-3" data-bs-ride="carousel">
+        
+        <div id="photoCarousel" ref="carouselElement" class="carousel slide mb-3">
           <div class="carousel-inner">
             <div v-for="(img, idx) in item.carouselImages" :key="img" class="carousel-item" :class="{ active: idx === 0 }">
               <img :src="img" class="d-block w-100" :alt="item.name" />
@@ -18,7 +19,15 @@
 
         <h2 class="fw-bold item-title">{{ item.title }}</h2>
         <p class="item-desc">{{ item.longDesc }}</p>
+        
         <div class="popup-phone" v-html="phoneHtml"></div>
+
+        <div class="mt-4">
+          <button @click="goToReservation" class="reserve-btn-large">
+            📅 Make a Reservation!
+          </button>
+        </div>
+
       </div>
 
       <div class="col-lg-6">
@@ -36,8 +45,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick, toRaw } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { useRoute,useRouter } from 'vue-router';
 import L from 'leaflet';
 import { Carousel } from 'bootstrap'; 
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
@@ -52,6 +61,7 @@ L.Icon.Default.mergeOptions({
 
 // --- État réactif (Refs) ---
 const route = useRoute();
+const router = useRouter();
 const mapContainer = ref(null);
 const carouselElement = ref(null);
 const item = ref(null); // 1. CORRECTION : Déclaration de la variable item
@@ -76,6 +86,9 @@ const phoneHtml = computed(() => {
   return `<i class="bi bi-telephone-fill"></i>
           <a href="tel:${item.value.phone}">${item.value.phone}</a>`;
 });
+const goToReservation = () => {
+  router.push(`/reserve/${item.value.id}`);
+};
 
 // --- Fonctions d'initialisation ---
 function initializeComponent() {
@@ -149,11 +162,10 @@ function initializeComponent() {
     setTimeout(() => mapInstance.invalidateSize(), 100);
 
     // --- B. Initialisation du Carrousel ---
+    // --- B. Initialisation du Carrousel ---
     if (carouselElement.value) {
-      // On récupère l'élément HTML brut sans la couche de réactivité Vue
-      const rawCarouselElement = toRaw(carouselElement.value);
-      
-      carouselInstance = new Carousel(rawCarouselElement, {
+      // Just use .value directly
+      carouselInstance = new Carousel(carouselElement.value, {
         interval: 3000,
         ride: 'carousel'
       });
@@ -163,8 +175,9 @@ function initializeComponent() {
 
 // --- Hooks de cycle de vie ---
 onMounted(() => {
-  loadItem(); // On lance le chargement
+  loadItem();// On lance le chargement
 });
+
 
 // 3. CORRECTION : Utilisation de nextTick
 // On surveille l'item. Quand il arrive, on attend que Vue mette à jour le DOM (v-if), PUIS on initialise.
@@ -268,13 +281,6 @@ onUnmounted(() => {
 </style>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  background-color: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
 
 /* --- Styles Leaflet Globaux --- */
 .leaflet-container {

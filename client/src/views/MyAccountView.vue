@@ -590,6 +590,35 @@ onMounted(async () => {
     console.error("Error fetching items:", error)
   }
 })
+// Inside script setup in MyAccount.vue
+
+onMounted(async () => {
+  // ... (User check logic) ...
+
+  try {
+    // Call the new endpoint
+    const res = await fetch(`http://localhost:3000/api/my-bookings/${user.value.id}`)
+    
+    if (res.ok) {
+      const data = await res.json()
+      
+      // Map the database results to your Dashboard's "orders" format
+      orders.value = data.map(item => ({
+        id: item.order_id,
+        title: item.product_name,     // Comes from the joined product table
+        date: item.booking_date.split('T')[0], // Clean up date format
+        time: item.booking_time,
+        status: item.status,
+        statusLabel: item.status.charAt(0).toUpperCase() + item.status.slice(1),
+        total: item.price * item.guests, // Calculate total based on price per person
+        category: item.product_category,
+        image: item.product_image // You can use this if you want to show images in the modal
+      }))
+    }
+  } catch (error) {
+    console.error("Error loading bookings:", error)
+  }
+})
 </script>
 
 <style scoped>
