@@ -12,7 +12,7 @@ const port = 3000;
 
 const JWT_SECRET = "KhazzDiscoverChris17";
 
-app.use(cors({origin: "http://localhost:8080"})); 
+app.use(cors({origin: "http://localhost:8081"})); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -46,7 +46,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "root",
   database: "efrei",
   port: 3306
 });
@@ -154,9 +154,6 @@ app.post('/api/reserve', (req, res) => {
   });
 });
 
-// 2. API TO GET RESERVATIONS FOR "MY ACCOUNT"
-// We use JOIN to get the Restaurant/Hotel Name and Image, not just the ID
-// 2. API TO GET RESERVATIONS FOR "MY ACCOUNT"
 app.get('/api/my-bookings/:userId', (req, res) => {
   const userId = req.params.userId;
 
@@ -186,6 +183,61 @@ app.get('/api/my-bookings/:userId', (req, res) => {
     
     res.json(results);
   });
+});
+
+app.get('/api/admin/bookings', (req, res) => {
+    const sql = `
+        SELECT 
+            b.id, 
+            b.booking_date,
+            b.booking_time, 
+            b.status,
+            u.name as user_name,
+            p.name as product_name
+        FROM bookings b
+        JOIN users u ON b.user_id = u.id
+        JOIN products p ON b.product_id = p.id
+        ORDER BY b.booking_date DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Erreur DB" });
+        }
+        results.forEach(row => {
+            row.booking_date = row.booking_date.toISOString().split('T')[0];
+            if (row.booking_time === "Check-in")
+              row.booking_time = ""
+             
+        });
+
+        console.log(results);
+        res.json(results);
+    });
+});
+
+// 2. Valider une réservation (Changer status pending -> completed)
+app.put('/api/admin/bookings/:id/complete', (req, res) => {
+    const id = req.params.id;
+    
+    const sql = "UPDATE bookings SET status = 'completed' WHERE id = ?";
+    
+    db.query(sql, [id], (err, result) => {
+        if (err) return res.status(500).json({ error: "Erreur DB" });
+        res.json({ success: true, message: "Réservation validée !" });
+    });
+});
+
+app.put('/api/admin/bookings/:id/pending', (req, res) => {
+    const id = req.params.id;
+    
+    const sql = "UPDATE bookings SET status = 'pending' WHERE id = ?";
+    
+    db.query(sql, [id], (err, result) => {
+        if (err) return res.status(500).json({ error: "Erreur DB" });
+        res.json({ success: true, message: "Réservation validée !" });
+    });
 });
 function generateToken(user) {
   return jwt.sign(

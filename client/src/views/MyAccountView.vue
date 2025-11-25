@@ -9,7 +9,7 @@
             <div class="avatar-circle">
               <span>{{ userInitials }}</span>
             </div>
-            <div class="avatar-hello">Hello</div>
+            <div class="avatar-hello">Hello, </div>
           </div>
 
           <div class="profile-text">
@@ -19,7 +19,7 @@
           </div>
 
           <div class="profile-badges">
-            <span class="badge-chip">Member</span>
+            <span v-if="user && user.role !== 'admin'" class="badge-chip">Member</span>
             <span v-if="user && user.role === 'admin'" class="badge-chip badge-chip-admin">Admin</span>
             <span class="badge-chip badge-chip-gold">
               {{ orders.length }} trip{{ orders.length > 1 ? 's' : '' }} planned
@@ -355,6 +355,60 @@
                 </div>
               </div>
             </div>
+            <div class="info-card reservation-card">
+  <div class="res-header">
+    <h3>Reservation Management</h3>
+    <span class="badge-count">{{ pendingReservations.length }} to do</span>
+  </div>
+
+  <div class="reservation-grid">
+    
+    <div class="res-column pending-col">
+      <h4 class="col-title">⏳ Pending Requests</h4>
+
+      <div v-if="pendingReservations.length !== 0" class="res-list">
+        <div v-for="res in pendingReservations" :key="res.id" class="res-item-card">
+          <div class="res-content">
+            <div class="res-top">
+              <span class="res-id">User n°{{ res.id }}</span>
+              <span class="res-date">{{ res.date + " " + res.hour}}</span>
+            </div>
+            <div class="res-main">
+              <span class="res-user">{{ res.user }}</span>
+              <span class="res-product">{{ res.item }}</span>
+            </div>
+          </div>
+          <button class="action-btn" @click="markAsProcessed(res.id)" title="Confirm booking">
+            ✓
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="res-column done-col">
+      <h4 class="col-title">✅ Processed History</h4>
+      
+      <div class="res-list">
+        <div v-for="res in processedReservations" :key="res.id" class="res-item-card done-item">
+          <div class="res-content">
+            <div class="res-top">
+              <span class="res-id">User n°{{ res.id }}</span>
+              <span class="res-date">{{ res.date + " " + res.hour}}</span>
+            </div>
+            <div class="res-main">
+              <span class="res-user">{{ res.user }}</span>
+              <span class="res-product">{{ res.item }}</span>
+            </div>
+          </div>
+          <button class="action-btn-rmv" @click="markAsUnprocessed(res.id)" title="Confirm booking">
+            X
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
           </div>
         </section>
 
@@ -412,6 +466,7 @@ const allItems = ref([]) // For favorites
 const orders = ref([])   // <--- NOW EMPTY, WILL BE FILLED BY DB
 const securityError = ref("")
 const securitySuccess = ref("")
+const adminReservations = ref([])
 
 // Calendar & Modal State
 const calendarDate = ref(new Date())
@@ -448,7 +503,6 @@ const sidebarItems = computed(() => {
 })
 
 // CORRECTION 2 : On utilise directement la liste du store
-// C'est beaucoup plus robuste car ça marche même si allItems n'a pas fini de charger
 const favoritedItems = computed(() => {
   return favoriteItems.value || [];
 })
@@ -462,6 +516,71 @@ const userInitials = computed(() => {
     .slice(0, 2)
     .join("")
 })
+// --- ADMIN LOGIC ---
+
+const pendingReservations = computed(() => {
+  return adminReservations.value.filter(r => r.status === 'pending');
+});
+
+const processedReservations = computed(() => {
+  return adminReservations.value.filter(r => r.status === 'completed');
+});
+
+const fetchAdminBookings = async () => {
+    try {
+        const response = await fetch('http://localhost:3000/api/admin/bookings');
+        const data = await response.json();
+        
+        // On mappe les données SQL pour qu'elles collent à ton affichage
+        adminReservations.value = data.map(row => ({
+            id: row.id,
+            user: row.user_name,     // Vient du JOIN users
+            item: row.product_name,  // Vient du JOIN products
+            date: row.booking_date,
+            hour: row.booking_time,
+            status: row.status
+        }));
+        console.log("Date : ", adminReservations.value.date)
+    } catch (e) {
+        console.error("Erreur chargement admin:", e);
+    }
+};
+
+// Action pour valider (Appel API)
+const markAsProcessed = async (id) => {
+  try {
+      // 1. On dit au serveur de mettre à jour
+      await fetch(`http://localhost:3000/api/admin/bookings/${id}/complete`, {
+          method: 'PUT'
+      });
+
+      // 2. On met à jour localement sans recharger la page
+      const reservation = adminReservations.value.find(r => r.id === id);
+      if (reservation) {
+        reservation.status = 'completed';
+      }
+  } catch (e) {
+      console.error("Erreur validation:", e);
+  }
+};
+
+const markAsUnprocessed = async (id) => {
+  try {
+      // 1. On dit au serveur de mettre à jour
+      await fetch(`http://localhost:3000/api/admin/bookings/${id}/pending`, {
+          method: 'PUT'
+      });
+
+      const reservation = adminReservations.value.find(r => r.id === id);
+      if (reservation) {
+        reservation.status = 'pending';
+      }
+  } catch (e) {
+      console.error("Erreur validation:", e);
+  }
+};
+
+
 
 // --- Calendar Logic ---
 const currentYear = computed(() => calendarDate.value.getFullYear())
@@ -547,6 +666,10 @@ onMounted(async () => {
   }
   user.value = JSON.parse(storedUser)
 
+  if (user.value && user.value.role === 'admin') {
+      fetchAdminBookings();
+  }
+
   try {
     // 1. Fetch Items (Favorites)
     const itemsData = await api.getAllItems()
@@ -568,7 +691,6 @@ onMounted(async () => {
         guests: b.guests,
         status: b.status,
         statusLabel: b.status.charAt(0).toUpperCase() + b.status.slice(1),
-        // If total_price exists use it, otherwise show "Free" or Guest count
         total: b.total_price ? b.total_price + ' €' : 'Free' 
       }))
     }
@@ -578,6 +700,9 @@ onMounted(async () => {
 })
 </script>
 <style scoped>
+*{
+  color :black;
+}
 /* Page Layout */
 .account-shell {
   min-height: 100vh;
@@ -646,12 +771,9 @@ onMounted(async () => {
 }
 
 .avatar-hello {
-  background: #fff;
-  color: #b36b00;
-  font-size: 12px;
+  font-size: 32px;
   padding: 4px 10px;
-  border-radius: 999px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  font-weight: 1000;
 }
 
 .profile-text {
@@ -1294,6 +1416,180 @@ label {
 
 .tips-list li + li {
   margin-top: 4px;
+}
+
+/* --- STYLE RESERVATIONS DASHBOARD --- */
+
+/* La carte globale prend 2 colonnes sur grand écran */
+.reservation-card {
+  grid-column: span 2; 
+}
+
+.res-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.badge-count {
+  background: #d97706;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.reservation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.res-column {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid #eef2f6;
+}
+
+.col-title {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Liste scrollable si trop d'éléments */
+.res-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 5px; /* Espace pour la scrollbar */
+}
+
+/* STYLE DES CARTES INDIVIDUELLES */
+.res-item-card {
+  background: white;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+  border-left: 4px solid #d97706; /* Orange pour pending */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.res-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* Style spécifique pour items terminés */
+.done-item {
+  border-left: 4px solid #10b981; /* Vert pour done */
+  opacity: 0.8;
+  background: #fff;
+}
+
+.res-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.res-top {
+  display: flex;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.res-id { font-weight: bold; }
+
+.res-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.res-user {
+  font-weight: 700;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.res-product {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* BOUTON D'ACTION */
+.action-btn {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #d1fae5;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: #10b981;
+  color: white;
+  transform: scale(1.1);
+}
+
+.action-btn-rmv {
+  background: #fdecec;
+  color: #ff0000;
+  border: 1px solid #fad1d1;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+}
+
+
+.action-btn-rmv:hover {
+  background: #b91010;
+  color: white;
+  transform: scale(1.1);
+}
+.empty-state-mini {
+  text-align: center;
+  padding: 30px;
+  color: #94a3b8;
+  font-style: italic;
+  background: white;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+}
+
+/* Mobile : Une seule colonne */
+@media (max-width: 768px) {
+  .reservation-grid {
+    grid-template-columns: 1fr;
+  }
+  .reservation-card {
+    grid-column: span 1;
+  }
 }
 
 /* Responsive */
