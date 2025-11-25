@@ -3,16 +3,16 @@
     <div class="row g-4">
       <div class="col-lg-6">
         
-        <div id="photoCarousel" ref="carouselElement" class="carousel slide mb-3">
+        <div :id="'photoCarousel' + item.id" ref="carouselElement" class="carousel slide mb-3">
           <div class="carousel-inner">
             <div v-for="(img, idx) in item.carouselImages" :key="img" class="carousel-item" :class="{ active: idx === 0 }">
               <img :src="img" class="d-block w-100" :alt="item.name" />
             </div>
           </div>
-          <button class="carousel-control-prev" type="button" data-bs-target="#photoCarousel" data-bs-slide="prev">
+          <button class="carousel-control-prev" type="button" :data-bs-target="'#photoCarousel' + item.id" data-bs-slide="prev">
             <span class="carousel-control-prev-icon"></span>
           </button>
-          <button class="carousel-control-next" type="button" data-bs-target="#photoCarousel" data-bs-slide="next">
+          <button class="carousel-control-next" type="button" :data-bs-target="'#photoCarousel' + item.id" data-bs-slide="next">
             <span class="carousel-control-next-icon"></span>
           </button>
         </div>
