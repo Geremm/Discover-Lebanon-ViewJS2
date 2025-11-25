@@ -187,6 +187,7 @@ app.get('/api/my-bookings/:userId', (req, res) => {
     res.json(results);
   });
 });
+
 function generateToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email },
@@ -305,7 +306,23 @@ app.get('/api/favorites/:userId', (req, res) => {
         });
     });
 });
+// ============================================
+// CANCEL RESERVATION ROUTE
+// ============================================
+app.post('/api/cancel-booking/:id', (req, res) => {
+  const bookingId = req.params.id;
+  
+  // This updates the status in MySQL instead of deleting the row
+  const sql = "UPDATE bookings SET status = 'cancelled' WHERE id = ?";
 
+  db.query(sql, [bookingId], (err, result) => {
+    if (err) {
+      console.error("Error cancelling booking:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.json({ success: true, message: "Booking cancelled" });
+  });
+});
 app.listen(port, () => {
  console.log(`Server is running at http://localhost:${port}`);
 });
