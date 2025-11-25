@@ -301,9 +301,12 @@
             <div><h2>Admin Dashboard</h2><p>Manage system.</p></div>
           </header>
           <div class="info-grid">
-            <div class="info-card">
+            <div class="info-card QA-section">
               <h3>Quick Actions</h3>
-              <div class="info-row"><router-link to="/admin/add-place">➕ Add new place</router-link></div>
+              <div class="info-row"><router-link to="/admin/add-place">➕ Add new place</router-link><div class="stat-pill">
+                  <span class="stat-label">Total Items</span>
+                  <span class="stat-value">{{ allItems.length }}</span>
+                </div></div>
             </div>
             <div class="info-card reservation-card">
   <div class="res-header">
@@ -409,7 +412,7 @@ import api from "@/services/api.js"
 import ItemCard from "@/components/ItemCard.vue"
 
 const router = useRouter()
-const { favoriteSet } = useFavorites()
+const { favoriteItems } = useFavorites()
 
 const activeTab = ref("info")
 const allItems = ref([]) 
@@ -437,12 +440,9 @@ const sidebarItems = computed(() => {
   if (user.value.role === 'admin') items.push({ key: "admin", label: "Admin Panel", icon: "⚙️" })
   return items
 })
-
-// FIX: Added Safety Check for favoriteSet
 const favoritedItems = computed(() => {
-  if (!favoriteSet || !favoriteSet.value || !allItems.value) return []
-  return allItems.value.filter(item => favoriteSet.value.has(item.id))
-})
+    return favoriteItems.value || [];
+});
 
 const userInitials = computed(() => {
   if (!user.value.name) return "DL"
@@ -477,7 +477,6 @@ const fetchAdminBookings = async () => {
             hour: row.booking_time,
             status: row.status
         }));
-        console.log("Date : ", adminReservations.value.date)
     } catch (e) {
         console.error("Erreur chargement admin:", e);
     }
@@ -616,6 +615,7 @@ onMounted(async () => {
       }))
     }
   } catch (error) { console.error("Error:", error) }
+  console.log("Favorited Items:", favoriteItems);
 })
 </script>
 
@@ -879,6 +879,10 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 18px;
+}
+
+.QA-section{
+  max-width: 80%;
 }
 
 .info-card {
