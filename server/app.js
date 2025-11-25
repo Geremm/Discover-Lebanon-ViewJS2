@@ -12,7 +12,7 @@ const port = 3000;
 
 const JWT_SECRET = "KhazzDiscoverChris17";
 
-app.use(cors({origin: "http://localhost:8081"})); 
+app.use(cors({origin: "http://localhost:8080"})); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -46,7 +46,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "",
   database: "efrei",
   port: 3306
 });
@@ -134,6 +134,58 @@ app.get('/api/item/:id', (req, res) => {
             res.json(product);
         });
     });
+});
+// 1. API TO SAVE A NEW RESERVATION
+app.post('/api/reserve', (req, res) => {
+  const { userId, productId, date, time, guests, notes } = req.body;
+
+  const sql = `
+    INSERT INTO bookings (user_id, product_id, booking_date, booking_time, guests, notes) 
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(sql, [userId, productId, date, time, guests, notes], (err, result) => {
+    if (err) {
+      console.error("Error saving booking:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    console.log(result);
+    res.status(201).json({ message: "Reservation successful", id: result.insertId });
+  });
+});
+
+// 2. API TO GET RESERVATIONS FOR "MY ACCOUNT"
+// We use JOIN to get the Restaurant/Hotel Name and Image, not just the ID
+// 2. API TO GET RESERVATIONS FOR "MY ACCOUNT"
+app.get('/api/my-bookings/:userId', (req, res) => {
+  const userId = req.params.userId;
+
+  const sql = `
+    SELECT 
+      b.id AS order_id,
+      b.booking_date,
+      b.booking_time,
+      b.guests,
+      b.status,
+      b.notes,
+      -- Ensure these column names match your 'products' table exactly
+      p.title AS product_name,   -- If your column is 'name', change this to p.name
+      p.imageUrl AS product_image, -- If your column is 'image', change this to p.image
+      p.category
+    FROM bookings b
+    JOIN products p ON b.product_id = p.id
+    WHERE b.user_id = ?
+    ORDER BY b.booking_date DESC
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching bookings:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    
+    res.json(results);
+  });
 });
 function generateToken(user) {
   return jwt.sign(

@@ -205,35 +205,39 @@
         </section>
 
         <section v-else-if="activeTab === 'orders'" class="panel">
-          <header class="panel-header">
-            <div>
-              <h2>Your Orders</h2>
-              <p>Overview of your trip reservations and bookings.</p>
-            </div>
-          </header>
-
           <div v-if="orders.length" class="table-card">
             <table class="orders-table">
               <thead>
                 <tr>
                   <th>Order</th>
                   <th>Trip / Item</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                </tr>
+                  <th>Date & Time</th> <th>Status</th>
+                  <th>Details</th>     </tr>
               </thead>
               <tbody>
                 <tr v-for="order in orders" :key="order.id">
                   <td>#{{ order.id }}</td>
-                  <td>{{ order.title }}</td>
-                  <td>{{ order.date }}</td>
+                  
+                  <td>
+                    <strong>{{ order.title }}</strong>
+                  </td>
+
+                  <td>
+                    <div>{{ order.date }}</div>
+                    <small style="color: #888; font-size: 0.85em;">
+                      {{ order.time }}
+                    </small>
+                  </td>
+
                   <td>
                     <span :class="['status-badge', 'status-' + order.status]">
                       {{ order.statusLabel }}
                     </span>
                   </td>
-                  <td>{{ order.total }} €</td>
+
+                  <td>
+                    {{ order.total }} 
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -390,6 +394,7 @@
 import { ref, onMounted, computed } from "vue"
 import { useRouter } from "vue-router"
 
+// Imports
 import { useFavorites } from "@/store/favorites.js"
 import api from "@/services/api.js" 
 import ItemCard from "@/components/ItemCard.vue"
@@ -403,12 +408,13 @@ const { favoriteItems } = useFavorites()
 
 // UI State
 const activeTab = ref("info")
-const allItems = ref([])
+const allItems = ref([]) // For favorites
+const orders = ref([])   // <--- NOW EMPTY, WILL BE FILLED BY DB
 const securityError = ref("")
 const securitySuccess = ref("")
 
 // Calendar & Modal State
-const calendarDate = ref(new Date(2025, 10, 1)) // Nov 2025
+const calendarDate = ref(new Date())
 const isModalOpen = ref(false)
 const selectedDayEvents = ref([])
 const selectedDateString = ref("")
@@ -421,28 +427,6 @@ const user = ref({
   role: ""
 })  
 
-// Updated Mock Data with Title & Time
-const orders = ref([
-  {
-    id: "2025-001",
-    title: "Wine Tasting at Ixsir",
-    time: "11:00 AM",
-    date: "2025-11-21",
-    status: "completed",
-    statusLabel: "Completed",
-    total: 49.9
-  },
-  {
-    id: "2025-002",
-    title: "Sunset Boat Trip - Byblos",
-    time: "05:30 PM",
-    date: "2025-11-22",
-    status: "pending",
-    statusLabel: "Pending",
-    total: 19.9
-  }
-])
-
 const securityForm = ref({
   currentPassword: "",
   newPassword: "",
@@ -450,7 +434,6 @@ const securityForm = ref({
 })
 
 // --- Computed Props ---
-
 const sidebarItems = computed(() => {
   const items = [
     { key: "info", label: "Overview", icon: "🏠" },
@@ -458,11 +441,9 @@ const sidebarItems = computed(() => {
     { key: "orders", label: "Trips", icon: "🧳" },
     { key: "security", label: "Security", icon: "🔐" }
   ]
-
   if (user.value.role === 'admin') {
     items.push({ key: "admin", label: "Admin Panel", icon: "⚙️" })
   }
-
   return items
 })
 
@@ -483,31 +464,26 @@ const userInitials = computed(() => {
 })
 
 // --- Calendar Logic ---
-
 const currentYear = computed(() => calendarDate.value.getFullYear())
 const currentMonthName = computed(() => {
   return calendarDate.value.toLocaleString('default', { month: 'long' })
 })
-
 const daysInMonth = computed(() => {
   const year = calendarDate.value.getFullYear()
   const month = calendarDate.value.getMonth()
   return new Date(year, month + 1, 0).getDate()
 })
-
 const paddingDays = computed(() => {
   const year = calendarDate.value.getFullYear()
   const month = calendarDate.value.getMonth()
   const firstDay = new Date(year, month, 1).getDay()
   return firstDay === 0 ? 6 : firstDay - 1
 })
-
 const changeMonth = (offset) => {
   const newDate = new Date(calendarDate.value)
   newDate.setMonth(newDate.getMonth() + offset)
   calendarDate.value = newDate
 }
-
 const isToday = (day) => {
   const today = new Date()
   const d = calendarDate.value
@@ -515,37 +491,24 @@ const isToday = (day) => {
          today.getMonth() === d.getMonth() && 
          today.getFullYear() === d.getFullYear()
 }
-
-// Get events for specific day (used in the calendar view)
 const getEventsForDay = (day) => {
   const year = calendarDate.value.getFullYear()
   const month = calendarDate.value.getMonth() + 1
   const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  
   return orders.value.filter(order => order.date === dateStr)
 }
 
 // --- Modal Logic ---
-
 const openDayModal = (day) => {
-  // 1. Get events
   selectedDayEvents.value = getEventsForDay(day)
-  
-  // 2. Format Date for Header
   const year = calendarDate.value.getFullYear()
   const monthName = calendarDate.value.toLocaleString('default', { month: 'long' })
   selectedDateString.value = `${monthName} ${day}, ${year}`
-  
-  // 3. Open
   isModalOpen.value = true
 }
-
-const closeModal = () => {
-  isModalOpen.value = false
-}
+const closeModal = () => { isModalOpen.value = false }
 
 // --- Methods ---
-
 const updatePassword = () => {
   securityError.value = ""
   securitySuccess.value = ""
@@ -566,10 +529,6 @@ const updatePassword = () => {
   })
 
   securitySuccess.value = "Password updated (demo)."
-  
-  securityForm.value.currentPassword = ""
-  securityForm.value.newPassword = ""
-  securityForm.value.confirmPassword = ""
 }
 
 const handleLogout = () => {
@@ -579,51 +538,42 @@ const handleLogout = () => {
   router.push("/login")
 }
 
-// Initialization
+// --- INITIALIZATION (FETCH DATA) ---
 onMounted(async () => {
   const storedUser = localStorage.getItem("user")
-
   if (!storedUser) {
     router.push("/login")
     return
   }
-
   user.value = JSON.parse(storedUser)
 
   try {
-    const data = await api.getAllItems()
-    allItems.value = data
-  } catch (error) {
-    console.error("Error fetching items:", error)
-  }
-})
-// Inside script setup in MyAccount.vue
+    // 1. Fetch Items (Favorites)
+    const itemsData = await api.getAllItems()
+    allItems.value = itemsData
 
-onMounted(async () => {
-  // ... (User check logic) ...
-
-  try {
-    // Call the new endpoint
+    // 2. Fetch Real Bookings from MySQL
+    // Make sure your backend port is correct (3000)
     const res = await fetch(`http://localhost:3000/api/my-bookings/${user.value.id}`)
     
     if (res.ok) {
       const data = await res.json()
       
-      // Map the database results to your Dashboard's "orders" format
-      orders.value = data.map(item => ({
-        id: item.order_id,
-        title: item.product_name,     // Comes from the joined product table
-        date: item.booking_date.split('T')[0], // Clean up date format
-        time: item.booking_time,
-        status: item.status,
-        statusLabel: item.status.charAt(0).toUpperCase() + item.status.slice(1),
-        total: item.price * item.guests, // Calculate total based on price per person
-        category: item.product_category,
-        image: item.product_image // You can use this if you want to show images in the modal
+      // Map database columns to frontend format
+      orders.value = data.map(b => ({
+        id: b.order_id,
+        title: b.product_name,
+        date: b.booking_date ? b.booking_date.split('T')[0] : '', // Clean MySQL date
+        time: b.booking_time,
+        guests: b.guests,
+        status: b.status,
+        statusLabel: b.status.charAt(0).toUpperCase() + b.status.slice(1),
+        // If total_price exists use it, otherwise show "Free" or Guest count
+        total: b.total_price ? b.total_price + ' €' : 'Free' 
       }))
     }
   } catch (error) {
-    console.error("Error loading bookings:", error)
+    console.error("Error fetching account data:", error)
   }
 })
 </script>
