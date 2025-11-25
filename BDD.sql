@@ -16,6 +16,36 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `bookings`
+--
+
+DROP TABLE IF EXISTS `bookings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `bookings` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `booking_date` date NOT NULL,
+  `booking_time` varchar(50) DEFAULT NULL,
+  `guests` int DEFAULT '1',
+  `notes` text,
+  `status` varchar(50) DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bookings`
+--
+
+LOCK TABLES `bookings` WRITE;
+/*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `product_carousel_images`
 --
 
@@ -99,7 +129,7 @@ CREATE TABLE `user_favorites` (
 
 LOCK TABLES `user_favorites` WRITE;
 /*!40000 ALTER TABLE `user_favorites` DISABLE KEYS */;
-INSERT INTO `user_favorites` VALUES (3,6),(3,8),(1,202),(2,315);
+INSERT INTO `user_favorites` VALUES (3,6),(3,8),(3,14),(1,202),(2,315);
 /*!40000 ALTER TABLE `user_favorites` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -140,4 +170,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-25  8:42:39
+-- Dump completed on 2025-11-26  1:40:54
