@@ -12,7 +12,7 @@ const port = 3000;
 
 const JWT_SECRET = "KhazzDiscoverChris17";
 
-app.use(cors({origin: "http://localhost:8081"})); 
+app.use(cors({origin: "http://localhost:8080"})); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -49,7 +49,7 @@ app.get('/', (req, res) => {
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "",
   database: "efrei",
   port: 3306
 });
@@ -102,7 +102,6 @@ app.get('/api/items', (req, res) => {
             });
 
             // 5. On envoie la réponse
-            console.log("Result /api/items string", result)
             res.json(result);
         });
     });
@@ -135,7 +134,6 @@ app.get('/api/item/:id', (req, res) => {
             product.carouselImages = imageRows.map(img => img.imageUrl);
 
             // 4. On renvoie le 
-            console.log("Result /api/items:id string", product);
             res.json(product);
         });
     });
@@ -202,4 +200,51 @@ app.post("/api/login", (req, res) => {
 
 app.listen(port, () => {
  console.log(`Server is running at http://localhost:${port}`);
+});
+
+// POST /api/reserve
+app.post('/api/reserve', (req, res) => {
+  const { userId, productId, date, time, guests } = req.body;
+
+  const sql = `
+    INSERT INTO bookings (user_id, product_id, booking_date, booking_time, guests, status) 
+    VALUES (?, ?, ?, ?, ?, 'pending')
+  `;
+
+  db.query(sql, [userId, productId, date, time, guests], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Booking failed" });
+    }
+    res.status(201).json({ message: "Reservation successful", bookingId: result.insertId });
+  });
+});
+// GET /api/my-bookings/:userId
+app.get('/api/my-bookings/:userId', (req, res) => {
+  const userId = req.params.userId;
+
+  const sql = `
+    SELECT 
+      b.id as order_id, 
+      b.booking_date, 
+      b.booking_time, 
+      b.status, 
+      b.guests,
+      p.name as product_name, 
+      p.image as product_image, 
+      p.category as product_category,
+      p.price
+    FROM bookings b
+    JOIN product p ON b.product_id = p.id
+    WHERE b.user_id = ?
+    ORDER BY b.booking_date DESC
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Could not fetch bookings" });
+    }
+    res.json(results);
+  });
 });
