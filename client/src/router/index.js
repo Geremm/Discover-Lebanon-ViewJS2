@@ -1,12 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 //import { nextTick } from 'vue'
 import HomeView from '../views/HomeView.vue'
+import ReservationView from '../views/ReservationView.vue' // <--- IMPORT THIS
 
 const routes = [
   {
     path: '/',
     name: 'home',
     component: HomeView
+  },
+  {
+    path: '/reserve/:id',
+    name: 'reservation',
+    component: ReservationView
   },
   {
     path: '/places',
@@ -93,6 +99,7 @@ const routes = [
     component: () => import('../views/MyAccountView.vue'),
     meta: { showLogout: true }
   },
+  
 
 ]
 

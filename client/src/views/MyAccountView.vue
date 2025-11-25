@@ -121,7 +121,55 @@
               </p>
             </div>
           </div>
-        </section>
+
+          <div class="calendar-container">
+            <div class="calendar-header-row">
+              <h3>Your Trip Calendar</h3>
+              <div class="calendar-controls">
+                <button @click="changeMonth(-1)">‹</button>
+                <span>{{ currentMonthName }} {{ currentYear }}</span>
+                <button @click="changeMonth(1)">›</button>
+              </div>
+            </div>
+
+            <div class="calendar-grid">
+              <div class="cal-weekday">Mon</div>
+              <div class="cal-weekday">Tue</div>
+              <div class="cal-weekday">Wed</div>
+              <div class="cal-weekday">Thu</div>
+              <div class="cal-weekday">Fri</div>
+              <div class="cal-weekday">Sat</div>
+              <div class="cal-weekday">Sun</div>
+
+              <div 
+                v-for="pad in paddingDays" 
+                :key="'pad-' + pad" 
+                class="cal-day cal-day-empty"
+              ></div>
+
+              <div 
+                v-for="day in daysInMonth" 
+                :key="day" 
+                class="cal-day clickable-day"
+                :class="{ 'is-today': isToday(day) }"
+                @click="openDayModal(day)"
+              >
+                <span class="cal-date-num">{{ day }}</span>
+                
+                <div class="cal-events">
+                  <div 
+                    v-for="event in getEventsForDay(day)" 
+                    :key="event.id" 
+                    class="cal-event-pill"
+                    :class="'pill-' + event.status"
+                  >
+                    {{ event.title || 'Trip #' + event.id }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </section>
 
         <section v-else-if="activeTab === 'favourites'" class="panel">
           <header class="panel-header">
@@ -169,6 +217,7 @@
               <thead>
                 <tr>
                   <th>Order</th>
+                  <th>Trip / Item</th>
                   <th>Date</th>
                   <th>Status</th>
                   <th>Total</th>
@@ -177,6 +226,7 @@
               <tbody>
                 <tr v-for="order in orders" :key="order.id">
                   <td>#{{ order.id }}</td>
+                  <td>{{ order.title }}</td>
                   <td>{{ order.date }}</td>
                   <td>
                     <span :class="['status-badge', 'status-' + order.status]">
@@ -306,6 +356,33 @@
 
       </main>
     </div>
+
+    <div v-if="isModalOpen" class="modal-backdrop" @click="closeModal">
+      <div class="modal-card" @click.stop>
+        <div class="modal-header">
+          <h3>{{ selectedDateString }}</h3>
+          <button class="modal-close-btn" @click="closeModal">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <div v-if="selectedDayEvents.length > 0" class="modal-events-list">
+            <div v-for="event in selectedDayEvents" :key="event.id" class="modal-event-item">
+              <div class="event-time">{{ event.time }}</div>
+              <div class="event-details">
+                <span class="event-title">{{ event.title }}</span>
+                <span :class="['status-badge', 'status-' + event.status]">{{ event.statusLabel }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div v-else class="modal-empty">
+            <p>Nothing planned for this day.</p>
+            <router-link to="/plan-your-trip" class="empty-btn-small">Plan something?</router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -330,7 +407,13 @@ const allItems = ref([])
 const securityError = ref("")
 const securitySuccess = ref("")
 
-// Local user data
+// Calendar & Modal State
+const calendarDate = ref(new Date(2025, 10, 1)) // Nov 2025
+const isModalOpen = ref(false)
+const selectedDayEvents = ref([])
+const selectedDateString = ref("")
+
+// User local data
 const user = ref({
   id: "",
   name: "",
@@ -338,9 +421,12 @@ const user = ref({
   role: ""
 })  
 
+// Updated Mock Data with Title & Time
 const orders = ref([
   {
     id: "2025-001",
+    title: "Wine Tasting at Ixsir",
+    time: "11:00 AM",
     date: "2025-11-21",
     status: "completed",
     statusLabel: "Completed",
@@ -348,6 +434,8 @@ const orders = ref([
   },
   {
     id: "2025-002",
+    title: "Sunset Boat Trip - Byblos",
+    time: "05:30 PM",
     date: "2025-11-22",
     status: "pending",
     statusLabel: "Pending",
@@ -361,7 +449,8 @@ const securityForm = ref({
   confirmPassword: ""
 })
 
-// Build sidebar items, checking for admin role
+// --- Computed Props ---
+
 const sidebarItems = computed(() => {
   const items = [
     { key: "info", label: "Overview", icon: "🏠" },
@@ -393,7 +482,70 @@ const userInitials = computed(() => {
     .join("")
 })
 
-// Methods
+// --- Calendar Logic ---
+
+const currentYear = computed(() => calendarDate.value.getFullYear())
+const currentMonthName = computed(() => {
+  return calendarDate.value.toLocaleString('default', { month: 'long' })
+})
+
+const daysInMonth = computed(() => {
+  const year = calendarDate.value.getFullYear()
+  const month = calendarDate.value.getMonth()
+  return new Date(year, month + 1, 0).getDate()
+})
+
+const paddingDays = computed(() => {
+  const year = calendarDate.value.getFullYear()
+  const month = calendarDate.value.getMonth()
+  const firstDay = new Date(year, month, 1).getDay()
+  return firstDay === 0 ? 6 : firstDay - 1
+})
+
+const changeMonth = (offset) => {
+  const newDate = new Date(calendarDate.value)
+  newDate.setMonth(newDate.getMonth() + offset)
+  calendarDate.value = newDate
+}
+
+const isToday = (day) => {
+  const today = new Date()
+  const d = calendarDate.value
+  return today.getDate() === day && 
+         today.getMonth() === d.getMonth() && 
+         today.getFullYear() === d.getFullYear()
+}
+
+// Get events for specific day (used in the calendar view)
+const getEventsForDay = (day) => {
+  const year = calendarDate.value.getFullYear()
+  const month = calendarDate.value.getMonth() + 1
+  const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  
+  return orders.value.filter(order => order.date === dateStr)
+}
+
+// --- Modal Logic ---
+
+const openDayModal = (day) => {
+  // 1. Get events
+  selectedDayEvents.value = getEventsForDay(day)
+  
+  // 2. Format Date for Header
+  const year = calendarDate.value.getFullYear()
+  const monthName = calendarDate.value.toLocaleString('default', { month: 'long' })
+  selectedDateString.value = `${monthName} ${day}, ${year}`
+  
+  // 3. Open
+  isModalOpen.value = true
+}
+
+const closeModal = () => {
+  isModalOpen.value = false
+}
+
+// --- Methods ---
+
 const updatePassword = () => {
   securityError.value = ""
   securitySuccess.value = ""
@@ -415,7 +567,6 @@ const updatePassword = () => {
 
   securitySuccess.value = "Password updated (demo)."
   
-  // Reset form
   securityForm.value.currentPassword = ""
   securityForm.value.newPassword = ""
   securityForm.value.confirmPassword = ""
@@ -444,6 +595,35 @@ onMounted(async () => {
     allItems.value = data
   } catch (error) {
     console.error("Error fetching items:", error)
+  }
+})
+// Inside script setup in MyAccount.vue
+
+onMounted(async () => {
+  // ... (User check logic) ...
+
+  try {
+    // Call the new endpoint
+    const res = await fetch(`http://localhost:3000/api/my-bookings/${user.value.id}`)
+    
+    if (res.ok) {
+      const data = await res.json()
+      
+      // Map the database results to your Dashboard's "orders" format
+      orders.value = data.map(item => ({
+        id: item.order_id,
+        title: item.product_name,     // Comes from the joined product table
+        date: item.booking_date.split('T')[0], // Clean up date format
+        time: item.booking_time,
+        status: item.status,
+        statusLabel: item.status.charAt(0).toUpperCase() + item.status.slice(1),
+        total: item.price * item.guests, // Calculate total based on price per person
+        category: item.product_category,
+        image: item.product_image // You can use this if you want to show images in the modal
+      }))
+    }
+  } catch (error) {
+    console.error("Error loading bookings:", error)
   }
 })
 </script>
@@ -778,6 +958,226 @@ onMounted(async () => {
   margin-top: 10px;
   font-size: 12px;
   color: #7d7d7d;
+}
+
+/* === CALENDAR STYLES === */
+.calendar-container {
+  margin-top: 24px;
+  background: #fffdf7;
+  border: 1px solid #efe3c8;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.calendar-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.calendar-header-row h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.calendar-controls button {
+  background: transparent;
+  border: 1px solid #d4af37;
+  color: #d4af37;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cal-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #999;
+  padding-bottom: 4px;
+}
+
+.cal-day {
+  background: #fff;
+  border: 1px solid #f2edd9;
+  border-radius: 8px;
+  min-height: 60px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  transition: transform 0.1s ease;
+}
+
+/* Click interaction */
+.clickable-day {
+  cursor: pointer;
+}
+
+.clickable-day:hover {
+  border-color: #d4af37;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(212, 175, 55, 0.15);
+  z-index: 2;
+}
+
+.cal-day-empty {
+  background: transparent;
+  border: none;
+}
+
+.cal-date-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+.is-today {
+  background: #fff9e6;
+  border-color: #d4af37;
+}
+
+.cal-events {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cal-event-pill {
+  font-size: 9px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.pill-completed {
+  background: #e5f7ec;
+  color: #1d6b3d;
+}
+
+.pill-pending {
+  background: #fff4d6;
+  color: #94621b;
+}
+
+/* === MODAL STYLES === */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+  transform: scale(0.95);
+  animation: popIn 0.2s ease forwards;
+}
+
+@keyframes popIn {
+  to { transform: scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #888;
+}
+
+.modal-event-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.event-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4af37;
+  min-width: 60px;
+}
+
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.event-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #222;
+}
+
+.modal-empty {
+  text-align: center;
+  padding: 20px 0;
+  color: #777;
+  font-size: 14px;
+}
+
+.empty-btn-small {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #d4af37;
+  text-decoration: none;
+  font-weight: 600;
 }
 
 /* Favorites Grid */
