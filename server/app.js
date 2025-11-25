@@ -17,9 +17,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => {
- res.send('Hello World! je suis dans le  /');
-});
 
 // app.get('/api/items', (req, res) => {
 //     const category = req.query.category; // ex: /api/items?category=hotels
@@ -102,7 +99,6 @@ app.get('/api/items', (req, res) => {
             });
 
             // 5. On envoie la réponse
-            console.log("Result /api/items string", result)
             res.json(result);
         });
     });
@@ -135,7 +131,6 @@ app.get('/api/item/:id', (req, res) => {
             product.carouselImages = imageRows.map(img => img.imageUrl);
 
             // 4. On renvoie le 
-            console.log("Result /api/items:id string", product);
             res.json(product);
         });
     });
@@ -198,6 +193,65 @@ app.post("/api/login", (req, res) => {
       return res.status(500).json({ success: false, message: "Compare error" });
     }
   });
+});
+
+// 1. AJOUTER UN FAVORI
+app.post('/api/favorites', (req, res) => {
+    const { userId, productId } = req.body;
+    // INSERT IGNORE : Si c'est déjà favori, on ne fait rien (pas d'erreur)
+    const sql = "INSERT IGNORE INTO user_favorites (user_id, product_id) VALUES (?, ?)";
+    
+    db.query(sql, [userId, productId], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur DB" });
+        res.json({ success: true, message: "Favori ajouté" });
+    });
+});
+
+// 2. RETIRER UN FAVORI
+app.delete('/api/favorites/:userId/:productId', (req, res) => {
+    const { userId, productId } = req.params;
+    const sql = "DELETE FROM user_favorites WHERE user_id = ? AND product_id = ?";
+    
+    db.query(sql, [userId, productId], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur DB" });
+        res.json({ success: true, message: "Favori retiré" });
+    });
+});
+
+// 3. LISTER LES FAVORIS (Avec détails et images)
+app.get('/api/favorites/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    // A. On récupère les produits liés à ce user
+    const sql = `
+        SELECT p.* FROM products p
+        JOIN user_favorites uf ON p.id = uf.product_id
+        WHERE uf.user_id = ?
+    `;
+
+    db.query(sql, [userId], (err, products) => {
+        if (err) return res.status(500).json({ error: "DB Error" });
+        if (products.length === 0) return res.json([]); // Pas de favoris = tableau vide
+
+        // B. On récupère les images du carrousel pour ces produits
+        db.query('SELECT * FROM product_carousel_images', (err2, images) => {
+            if (err2) return res.status(500).json({ error: "DB Error Images" });
+
+            // C. On fusionne
+            const result = products.map(product => {
+                const productImages = images
+                    .filter(img => img.product_id === product.id)
+                    .map(img => img.imageUrl); // Ton screen montre 'imageUrl'
+
+                return {
+                    ...product, // Copie toutes les colonnes (qui sont déjà en camelCase chez toi)
+                    carouselImages: productImages
+                };
+            });
+
+            res.json(result);
+        });
+    });
 });
 
 app.listen(port, () => {

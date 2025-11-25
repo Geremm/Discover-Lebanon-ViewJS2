@@ -316,9 +316,13 @@ import { useRouter } from "vue-router"
 import { useFavorites } from "@/store/favorites.js"
 import api from "@/services/api.js" 
 import ItemCard from "@/components/ItemCard.vue"
+import { logout } from "@/store/auth"
 
 const router = useRouter()
-const { favoriteSet } = useFavorites()
+
+// CORRECTION 1 : On importe les bons noms depuis le store
+// On récupère favoriteItems directement (c'est plus simple !)
+const { favoriteItems } = useFavorites()
 
 // UI State
 const activeTab = ref("info")
@@ -373,8 +377,10 @@ const sidebarItems = computed(() => {
   return items
 })
 
+// CORRECTION 2 : On utilise directement la liste du store
+// C'est beaucoup plus robuste car ça marche même si allItems n'a pas fini de charger
 const favoritedItems = computed(() => {
-  return allItems.value.filter(item => favoriteSet.value.has(item.id))
+  return favoriteItems.value || [];
 })
 
 const userInitials = computed(() => {
@@ -402,7 +408,6 @@ const updatePassword = () => {
     return
   }
 
-  // TODO: Add backend API call here
   console.log("Change password payload:", {
     currentPassword: securityForm.value.currentPassword,
     newPassword: securityForm.value.newPassword
@@ -418,7 +423,8 @@ const updatePassword = () => {
 
 const handleLogout = () => {
   localStorage.removeItem("user")
-  // localStorage.removeItem("token")
+  localStorage.removeItem("token")
+  logout();
   router.push("/login")
 }
 
@@ -441,7 +447,6 @@ onMounted(async () => {
   }
 })
 </script>
-
 <style scoped>
 /* Page Layout */
 .account-shell {

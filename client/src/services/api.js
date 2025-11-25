@@ -15,7 +15,8 @@ export default {
     return this._fetchData(`/items?category=${category}`);
   },
 
-  async getItemById(id) {
+  // CORRECTION ICI : J'ai retiré le "a" qui trainait après {
+  async getItemById(id) { 
     return this._fetchData(`/item/${id}`);
   },
 
