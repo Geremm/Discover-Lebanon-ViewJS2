@@ -679,7 +679,7 @@ const saveName = async () => {
 
   try {
     const response = await fetch(`http://localhost:3000/api/users/${user.value.id}`, {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -983,12 +983,9 @@ onMounted(async () => {
 }
 
 .avatar-hello {
-  background: #fff;
-  color: #b36b00;
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  color: black;
+  font-size: 34px;
+  font-family :serif;
 }
 
 .profile-text {

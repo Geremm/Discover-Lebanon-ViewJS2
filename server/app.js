@@ -12,8 +12,11 @@ const port = 3000;
 
 const JWT_SECRET = "KhazzDiscoverChris17";
 
-app.use(cors({origin: "http://localhost:8080"})); 
-app.use(express.json());
+app.use(cors({
+  origin: "http://localhost:8080",
+  methods: ["GET", "POST", "PUT", "DELETE"], // <--- Explicitly allow PUT
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -368,7 +371,7 @@ app.post('/api/cancel-booking/:id', (req, res) => {
     res.json({ success: true, message: "Booking cancelled" });
   });
 });
-app.put('/api/users/:id', (req, res) => {
+app.post('/api/users/:id', (req, res) => {
     const userId = req.params.id;
     const { name } = req.body;
 
