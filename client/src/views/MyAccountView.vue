@@ -1647,24 +1647,47 @@ label {
     width: 100%;
     justify-content: flex-start;
   }
+}
+/* CUTE LOGOUT BUTTON STYLE */
+.logout-btn-red {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  border: none;
   
-  .logout-btn-red {
-    width: 100%;
-    margin-top: 20px;
-    padding: 12px 0;
-    border: none;
-    border-radius: 12px;
-    background: #ff4b4b;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 6px 15px rgba(255, 0, 0, 0.2);
-    transition: 0.25s ease;
-  }
+  /* Make it a "Pill" shape */
+  border-radius: 50px; 
+  
+  /* Soft Gradient (Coral to Pink) instead of flat red */
+  background: linear-gradient(135deg, #ff9a9e 0%, #ff6b6b 100%);
+  
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  
+  /* Soft glowing shadow */
+  box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+  
+  /* Smooth bubbly animation */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* Center text */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .logout-btn-red:hover {
-    background: #e63c3c;
-    transform: translateY(-1px);
-  }
+.logout-btn-red:hover {
+  /* Moves up slightly and glows more */
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
+}
+
+.logout-btn-red:active {
+  /* Click effect */
+  transform: scale(0.95);
+  box-shadow: 0 5px 15px rgba(255, 107, 107, 0.2);
 }
 </style>
