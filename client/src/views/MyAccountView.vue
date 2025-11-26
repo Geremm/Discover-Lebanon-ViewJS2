@@ -313,7 +313,7 @@
                   <div v-for="res in canceledReservations" :key="res.id" class="res-item-card">
                     <div class="res-content">
                       <div class="res-top">
-                        <span class="res-id">User n°{{ res.id }}</span>
+                        <span class="res-id">Reservation n°{{ res.id }}</span>
                         <span class="res-date">{{ res.date + " " + res.hour }}</span>
                       </div>
                       <div class="res-main">
@@ -343,7 +343,7 @@
                     <div v-for="res in pendingReservations" :key="res.id" class="res-item-card">
                       <div class="res-content">
                         <div class="res-top">
-                          <span class="res-id">User n°{{ res.id }}</span>
+                          <span class="res-id">Reservation n°{{ res.id }}</span>
                           <span class="res-date">{{ res.date + " " + res.hour }}</span>
                         </div>
                         <div class="res-main">
@@ -365,7 +365,7 @@
                     <div v-for="res in processedReservations" :key="res.id" class="res-item-card done-item">
                       <div class="res-content">
                         <div class="res-top">
-                          <span class="res-id">User n°{{ res.id }}</span>
+                          <span class="res-id">Reservation n°{{ res.id }}</span>
                           <span class="res-date">{{ res.date + " " + res.hour }}</span>
                         </div>
                         <div class="res-main">
@@ -676,6 +676,14 @@ const saveName = async () => {
   user.value.name = newName;
   localStorage.setItem("user", JSON.stringify(user.value));
   isEditingName.value = false;
+
+if (adminReservations.value.length > 0) {
+    adminReservations.value.forEach(res => {
+      if (res.user === oldName) {
+        res.user = newName;
+      }
+    });
+  }
 
   try {
     const response = await fetch(`http://localhost:3000/api/users/${user.value.id}`, {
