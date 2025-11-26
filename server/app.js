@@ -13,8 +13,8 @@ const port = 3000;
 const JWT_SECRET = "KhazzDiscoverChris17";
 
 app.use(cors({
-  origin: "http://localhost:8080",
-  methods: ["GET", "POST", "PUT", "DELETE"], // <--- Explicitly allow PUT
+  origin: "http://localhost:8081",
+  methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -49,7 +49,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "root",
   database: "efrei",
   port: 3306
 });
@@ -162,6 +162,8 @@ app.get('/api/my-bookings/:userId', (req, res) => {
   const sql = `
     SELECT 
       b.id AS order_id,
+      b.product_id,
+      b.user_id,
       b.booking_date,
       b.booking_time,
       b.guests,
@@ -191,6 +193,8 @@ app.get('/api/admin/bookings', (req, res) => {
     const sql = `
         SELECT 
             b.id, 
+            b.product_id,
+            b.user_id,
             b.booking_date,
             b.booking_time, 
             b.status,

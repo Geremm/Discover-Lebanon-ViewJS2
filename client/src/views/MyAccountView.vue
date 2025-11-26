@@ -60,7 +60,7 @@
           </div>
 
           <div class="top-card">
-            <div class="top-card-icon">⭐️</div>
+            <div class="top-card-icon"></div>
             <div>
               <h3>Favorites</h3>
               <p>{{ favoritedItems.length }} place{{ favoritedItems.length !== 1 ? 's' : '' }} saved.</p>
@@ -321,7 +321,7 @@
                         <span class="res-product">{{ res.item }}</span>
                       </div>
                     </div>
-                    <button class="action-btn-del" @click="delFromDatabase(res.id)" title="Delete cancelled booking">
+                    <button class="action-btn-del" @click="delFromBookingsDatabase(res.id)" title="Delete cancelled booking">
                       X
                     </button>
                   </div>
@@ -605,7 +605,11 @@ const executeDelete = async () => {
     console.log("Item deleted:", itemToDelete.value.id);
     
     allItems.value = allItems.value.filter(i => i.id !== itemToDelete.value.id);
+    favoriteItems.value = favoriteItems.value.filter(i => i.id !== itemToDelete.value.id);
 
+    adminReservations.value = adminReservations.value.filter(r => r.itemId !== itemToDelete.value.id);
+    console.log("Orders before deletion:", orders.value);
+    orders.value = orders.value.filter(o => o.itemId !== itemToDelete.value.id);
     itemToDelete.value = null; 
     
   } catch (error) {
@@ -743,7 +747,9 @@ const canceledReservations = computed(() => {
   return adminReservations.value.filter(r => r.status === 'cancelled');
 });
 
-const delFromDatabase = async (id) => {
+const delFromBookingsDatabase = async (id) => {
+  const order_backup = orders.value.find(o => o.id === id);
+  orders.value = orders.value.filter(o => o.id !== id);
   try {
     // 1. On dit au serveur de mettre à jour
     await fetch(`http://localhost:3000/api/admin/bookings/delete/${id}`, {
@@ -751,6 +757,7 @@ const delFromDatabase = async (id) => {
     });
     adminReservations.value = adminReservations.value.filter(r => r.id !== id);
   } catch (e) {
+    orders.value.push(order_backup);
     console.error("Erreur suppression:", e);
   }
 };
@@ -763,6 +770,8 @@ const fetchAdminBookings = async () => {
     // On mappe les données SQL pour qu'elles collent à ton affichage
     adminReservations.value = data.map(row => ({
       id: row.id,
+      itemId: row.product_id,
+      userId: row.user_id,
       user: row.user_name,     // Vient du JOIN users
       item: row.product_name,  // Vient du JOIN products
       date: row.booking_date,
@@ -786,6 +795,12 @@ const markAsProcessed = async (id) => {
     const reservation = adminReservations.value.find(r => r.id === id);
     if (reservation) {
       reservation.status = 'completed';
+      orders.value.forEach(order => {
+        if (order.id === id) {
+          order.status = 'completed';
+          order.statusLabel = 'Completed';
+        }
+      });
     }
   } catch (e) {
     console.error("Erreur validation:", e);
@@ -802,6 +817,12 @@ const markAsUnprocessed = async (id) => {
     const reservation = adminReservations.value.find(r => r.id === id);
     if (reservation) {
       reservation.status = 'pending';
+      orders.value.forEach(order => {
+        if (order.id === id) {
+          order.status = 'pending';
+          order.statusLabel = 'Pending';
+        }
+      });
     }
   } catch (e) {
     console.error("Erreur validation:", e);
@@ -900,8 +921,9 @@ onMounted(async () => {
 
       orders.value = data.map(b => ({
         id: b.order_id,
+        itemId: b.product_id,
+        userId: b.user_id,
         title: b.product_name,
-        // Map image safely
         image: b.product_image || 'https://via.placeholder.com/400x250?text=No+Image',
         category: b.category,
         date: b.booking_date ? b.booking_date.split('T')[0] : '',
