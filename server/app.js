@@ -12,7 +12,7 @@ const port = 3000;
 
 const JWT_SECRET = "KhazzDiscoverChris17";
 
-app.use(cors({origin: "http://localhost:8081"})); 
+app.use(cors({origin: "http://localhost:8080"})); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -46,7 +46,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "",
   database: "efrei",
   port: 3306
 });
@@ -149,7 +149,6 @@ app.post('/api/reserve', (req, res) => {
       console.error("Error saving booking:", err);
       return res.status(500).json({ error: "Database error" });
     }
-    console.log(result);
     res.status(201).json({ message: "Reservation successful", id: result.insertId });
   });
 });
