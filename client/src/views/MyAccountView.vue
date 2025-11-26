@@ -907,36 +907,52 @@ onMounted(async () => {
   }
   user.value = JSON.parse(storedUser)
 
+  // Admin check
   if (user.value && user.value.role === 'admin') {
-    fetchAdminBookings();
+      fetchAdminBookings();
   }
 
   try {
+    // 1. Fetch Items (Favorites)
     const itemsData = await api.getAllItems()
     allItems.value = itemsData
 
+    // 2. Fetch Real Bookings
     const res = await fetch(`http://localhost:3000/api/my-bookings/${user.value.id}`)
+    
     if (res.ok) {
       const data = await res.json()
+      
+      orders.value = data.map(b => {
+        // Logic to handle "Plan Your Trip" items (which might have null product_name)
+        let displayTitle = b.product_name;
+        let displayImage = b.product_image;
 
-      orders.value = data.map(b => ({
-        id: b.order_id,
-        itemId: b.product_id,
-        userId: b.user_id,
-        title: b.product_name,
-        image: b.product_image || 'https://via.placeholder.com/400x250?text=No+Image',
-        category: b.category,
-        date: b.booking_date ? b.booking_date.split('T')[0] : '',
-        time: b.booking_time,
-        guests: b.guests,
-        status: b.status,
-        statusLabel: b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : 'Pending',
-        // Total calculation
-        total: b.product_price ? (b.guests * b.product_price) + ' €' : `${b.guests} Guests`
-      }))
+        // If it's a custom trip, check the notes for the name
+        if (!displayTitle && b.notes && b.notes.includes('Custom Trip:')) {
+           // Extracts "Baalbek Tour" from "Custom Trip: Baalbek Tour"
+           displayTitle = b.notes.split('Custom Trip:')[1]; 
+           // Use a generic travel image for custom trips
+           displayImage = ''; 
+        }
+
+        return {
+          id: b.order_id,
+          title: displayTitle || 'Custom Trip', // Fallback title
+          image: displayImage || 'https://via.placeholder.com/400x250?text=No+Image',
+          category: b.category || 'Trip', // Fallback category
+          date: b.booking_date ? b.booking_date.split('T')[0] : '',
+          time: b.booking_time,
+          guests: b.guests,
+          status: b.status,
+          statusLabel: b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : 'Pending',
+          total: b.product_price ? (b.guests * b.product_price) + ' €' : `${b.guests} Guests`
+        };
+      })
     }
-  } catch (error) { console.error("Error:", error) }
-  console.log("Favorited Items:", favoriteItems);
+  } catch (error) {
+    console.error("Error fetching account data:", error)
+  }
 })
 </script>
 

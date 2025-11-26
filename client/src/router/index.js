@@ -99,6 +99,11 @@ const routes = [
     component: () => import('../views/MyAccountView.vue'),
     meta: { showLogout: true }
   },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: () => import('../views/ContactView.vue')
+  }
   
 
 ]

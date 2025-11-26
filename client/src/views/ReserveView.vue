@@ -43,8 +43,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 // --- Initialisation ---
-const route = useRoute();    // Pour lire les paramètres de l'URL
-const router = useRouter();  // Pour naviguer vers une autre page
+const route = useRoute();    
+const router = useRouter();  
 
 // --- État réactif du formulaire ---
 const tripName = ref('');
@@ -60,35 +60,64 @@ const showSuccessMessage = ref(false);
 onMounted(() => {
   tripName.value = route.query.trip || 'Trip not specified';
   basePrice.value = Number(route.query.price) || 0;
+  
+  // Auto-fill name if user is logged in
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (user) {
+    customerName.value = user.name;
+  }
 });
 
-// Propriété calculée pour le prix total. Elle se met à jour
-// automatiquement dès que `numPeople` change.
+// Propriété calculée pour le prix total
 const totalPrice = computed(() => {
   return (basePrice.value * numPeople.value).toFixed(2);
 });
 
-// Fonction appelée lors de la soumission du formulaire
-function handleReservation() {
-  console.log('Reservation submitted:', {
-    trip: tripName.value,
-    date: reservationDate.value,
-    name: customerName.value,
-    people: numPeople.value,
-    total: totalPrice.value,
-  });
+// --- CONNEXION AU BACKEND ---
+async function handleReservation() {
+  // 1. Vérifier si l'utilisateur est connecté
+  const user = JSON.parse(localStorage.getItem('user'));
+  
+  if (!user) {
+    alert("Please log in to complete your reservation.");
+    router.push('/login');
+    return;
+  }
 
-  // Affiche le message de succès
-  showSuccessMessage.value = true;
+  // 2. Envoyer les données au serveur
+  try {
+    const res = await fetch('http://localhost:3000/api/reserve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: user.id,
+        productId: 999, // ID générique pour "Custom Trip" (puisque ce n'est pas un hôtel spécifique)
+        date: reservationDate.value,
+        time: '09:00', // Heure par défaut pour un trip
+        guests: numPeople.value,
+        // Important : On sauvegarde le NOM du voyage dans les notes
+        notes: `Custom Trip: ${tripName.value}` 
+      })
+    });
 
-  // Redirige vers la page d'accueil après 2 secondes
-  setTimeout(() => {
-    showSuccessMessage.value = false; // Cache le message
-    router.push('/plan-your-trip'); // Utilise le routeur pour changer de page
-  }, 2000);
+    if (res.ok) {
+      // 3. Succès !
+      showSuccessMessage.value = true;
+
+      // Redirige vers "My Account" après 2 secondes pour voir la réservation
+      setTimeout(() => {
+        showSuccessMessage.value = false; 
+        router.push('/account'); 
+      }, 2000);
+    } else {
+      alert("Reservation failed. Please try again.");
+    }
+  } catch (err) {
+    console.error("Server error:", err);
+    alert("Could not connect to server.");
+  }
 }
 </script>
-
 <style scoped>
     form {
       max-width: 600px;

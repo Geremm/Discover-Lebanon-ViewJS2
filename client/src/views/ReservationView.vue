@@ -344,7 +344,7 @@
     justify-content: center;
   }
   
-  .form-header h2 { font-family: 'Playfair Display', serif; color: #324c3f; margin-bottom: 5px; }
+  .form-header h2 { font-family: 'Playfair Display', serif; color: #977b29; margin-bottom: 5px; }
   .form-header p { color: #666; margin-bottom: 30px; font-size: 0.95rem; }
   
   .real-form { display: flex; flex-direction: column; gap: 20px; }
@@ -371,7 +371,7 @@
   
   .input-group input:focus, .input-group textarea:focus {
     outline: none;
-    border-color: #324c3f;
+    border-color: #977b29;
     background: #fff;
     box-shadow: 0 0 0 4px rgba(50, 76, 63, 0.1);
   }
@@ -404,9 +404,9 @@
   .fw-bold { font-weight: 700; color: #324c3f; }
   
   .btn-submit {
-    background-color: #324c3f; color: white; padding: 16px; border-radius: 12px; border: none; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px;
+    background-color: #b8962d; color: white; padding: 16px; border-radius: 12px; border: none; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px;
   }
-  .btn-submit:hover { background-color: #263a30; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(50, 76, 63, 0.2); }
+  .btn-submit:hover { background-color: #977b29; transform: translateY(-2px); box-shadow: 0 10px 20px #977b29; }
   
   .loading-state { display: flex; align-items: center; justify-content: center; height: 100vh; gap: 10px; font-size: 1.2rem; color: #666; }
   
