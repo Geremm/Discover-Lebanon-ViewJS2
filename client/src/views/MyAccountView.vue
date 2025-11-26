@@ -3,7 +3,7 @@
     <div class="account-bg-blob"></div>
 
     <div class="account-layout">
-      
+
       <aside class="account-sidebar">
         <div class="account-profile-card">
           <div class="avatar-wrapper">
@@ -14,7 +14,16 @@
           </div>
 
           <div class="profile-text">
-            <h2 class="profile-name">{{ user && user.name ? user.name : 'Traveler' }}</h2>
+            <div v-if="!isEditingName" class="name-display">
+              <h2 class="profile-name">{{ user && user.name ? user.name : 'Traveler' }}<button class="edit-btn"
+                  title="Edit name" @click="isEditingName = true"> 🖍 </button></h2>
+            </div>
+            <div v-else class="name-edit">
+              <input ref="nameInput" v-model="tempName" type="text" class="edit-input" @keyup.enter="saveName"
+                @keyup.esc="cancelEdit" />
+              <button class="action-btn-small" @click="saveName">✔</button>
+              <button class="action-btn-small-rmv" @click="isEditingName = false">✕</button>
+            </div>
             <p class="profile-email">{{ user && user.email ? user.email : '' }}</p>
             <p class="profile-tagline">Ready for your next Lebanese escape 🌿</p>
           </div>
@@ -29,23 +38,18 @@
         </div>
 
         <nav class="sidebar-nav">
-          <button
-            v-for="item in sidebarItems"
-            :key="item.key"
-            class="sidebar-link"
-            :class="{ active: activeTab === item.key }"
-            @click="activeTab = item.key"
-          >
+          <button v-for="item in sidebarItems" :key="item.key" class="sidebar-link"
+            :class="{ active: activeTab === item.key }" @click="activeTab = item.key">
             <span class="sidebar-icon">{{ item.icon }}</span>
             <span class="sidebar-label">{{ item.label }}</span>
           </button>
         </nav>
-        
+
         <button class="logout-btn-red" @click="handleLogout">Logout</button>
       </aside>
 
       <main class="account-main">
-        
+
         <section class="top-cards" v-if="activeTab === 'info'">
           <div class="top-card">
             <div class="top-card-icon">👤</div>
@@ -142,28 +146,15 @@
               <div class="cal-weekday">Sat</div>
               <div class="cal-weekday">Sun</div>
 
-              <div 
-                v-for="pad in paddingDays" 
-                :key="'pad-' + pad" 
-                class="cal-day cal-day-empty"
-              ></div>
+              <div v-for="pad in paddingDays" :key="'pad-' + pad" class="cal-day cal-day-empty"></div>
 
-              <div 
-                v-for="day in daysInMonth" 
-                :key="day" 
-                class="cal-day clickable-day"
-                :class="{ 'is-today': isToday(day) }"
-                @click="openDayModal(day)"
-              >
+              <div v-for="day in daysInMonth" :key="day" class="cal-day clickable-day"
+                :class="{ 'is-today': isToday(day) }" @click="openDayModal(day)">
                 <span class="cal-date-num">{{ day }}</span>
-                
+
                 <div class="cal-events">
-                  <div 
-                    v-for="event in getEventsForDay(day)" 
-                    :key="event.id" 
-                    class="cal-event-pill"
-                    :class="'pill-' + event.status"
-                  >
+                  <div v-for="event in getEventsForDay(day)" :key="event.id" class="cal-event-pill"
+                    :class="'pill-' + event.status">
                     {{ event.title || 'Trip #' + event.id }}
                   </div>
                 </div>
@@ -181,15 +172,8 @@
           </header>
 
           <div v-if="favoritedItems.length" class="favorites-grid">
-            <ItemCard
-              v-for="item in favoritedItems"
-              :key="item.id"
-              :id="item.id"
-              :category="item.category"
-              :title="item.name"
-              :description="item.shortDesc"
-              :image="item.imageUrl"
-            />
+            <ItemCard v-for="item in favoritedItems" :key="item.id" :id="item.id" :category="item.category"
+              :title="item.name" :description="item.shortDesc" :image="item.imageUrl" />
           </div>
 
           <div v-else class="empty-state">
@@ -242,7 +226,8 @@
                     {{ order.total }}
                   </div>
                 </div>
-                <button v-if="order.status !== 'cancelled'" @click="promptCancel(order)" class="btn-cancel-trip">Cancel Booking</button>
+                <button v-if="order.status !== 'cancelled'" @click="promptCancel(order)" class="btn-cancel-trip">Cancel
+                  Booking</button>
               </div>
 
             </div>
@@ -298,71 +283,237 @@
 
         <section v-else-if="activeTab === 'admin'" class="panel">
           <header class="panel-header">
-            <div><h2>Admin Dashboard</h2><p>Manage system.</p></div>
+            <div>
+              <h2>Admin Dashboard</h2>
+              <p>Manage system.</p>
+            </div>
           </header>
           <div class="info-grid">
-            <div class="info-card QA-section">
-              <h3>Quick Actions</h3>
-              <div class="info-row"><router-link to="/admin/add-place">➕ Add new place</router-link><div class="stat-pill">
-                  <span class="stat-label">Total Items</span>
-                  <span class="stat-value">{{ allItems.length }}</span>
-                </div></div>
+            <div class="admin-group" style="border: 1px solid black">
+              <div class="info-card QA-section">
+                <h3>Quick Actions</h3>
+                <div class="info-row">
+                  <div class="edit-buttons">
+                    <button class="quick-action-btn" @click="showAddModal = true">
+                      ➕ Add new place
+                    </button>
+                    <button class="quick-action-btn btn-remove" @click="showDeleteListModal = true">
+                      ➖ Remove a place
+                    </button>
+                  </div>
+                  <div class="stat-pill">
+                    <span class="stat-label">Total Items</span>
+                    <span class="stat-value">{{ allItems.length }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="info-card cancel-card">
+                <h3>Cancel Reservations</h3>
+                <div class="info-row">
+                  <div v-for="res in canceledReservations" :key="res.id" class="res-item-card">
+                    <div class="res-content">
+                      <div class="res-top">
+                        <span class="res-id">User n°{{ res.id }}</span>
+                        <span class="res-date">{{ res.date + " " + res.hour }}</span>
+                      </div>
+                      <div class="res-main">
+                        <span class="res-user">{{ res.user }}</span>
+                        <span class="res-product">{{ res.item }}</span>
+                      </div>
+                    </div>
+                    <button class="action-btn-del" @click="delFromDatabase(res.id)" title="Delete cancelled booking">
+                      X
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="info-card reservation-card">
-  <div class="res-header">
-    <h3>Reservation Management</h3>
-    <span class="badge-count">{{ pendingReservations.length }} to do</span>
-  </div>
+              <div class="res-header">
+                <h3>Reservation Management</h3>
+                <span class="badge-count">{{ pendingReservations.length }} to do</span>
+              </div>
 
-  <div class="reservation-grid">
-    
-    <div class="res-column pending-col">
-      <h4 class="col-title">⏳ Pending Requests</h4>
+              <div class="reservation-grid">
 
-      <div v-if="pendingReservations.length !== 0" class="res-list">
-        <div v-for="res in pendingReservations" :key="res.id" class="res-item-card">
-          <div class="res-content">
-            <div class="res-top">
-              <span class="res-id">User n°{{ res.id }}</span>
-              <span class="res-date">{{ res.date + " " + res.hour}}</span>
-            </div>
-            <div class="res-main">
-              <span class="res-user">{{ res.user }}</span>
-              <span class="res-product">{{ res.item }}</span>
+                <div class="res-column pending-col">
+                  <h4 class="col-title">⏳ Pending Requests</h4>
+
+                  <div v-if="pendingReservations.length !== 0" class="res-list">
+                    <div v-for="res in pendingReservations" :key="res.id" class="res-item-card">
+                      <div class="res-content">
+                        <div class="res-top">
+                          <span class="res-id">User n°{{ res.id }}</span>
+                          <span class="res-date">{{ res.date + " " + res.hour }}</span>
+                        </div>
+                        <div class="res-main">
+                          <span class="res-user">{{ res.user }}</span>
+                          <span class="res-product">{{ res.item }}</span>
+                        </div>
+                      </div>
+                      <button class="action-btn" @click="markAsProcessed(res.id)" title="Confirm booking">
+                        ✓
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="res-column done-col">
+                  <h4 class="col-title">✅ Processed History</h4>
+
+                  <div class="res-list">
+                    <div v-for="res in processedReservations" :key="res.id" class="res-item-card done-item">
+                      <div class="res-content">
+                        <div class="res-top">
+                          <span class="res-id">User n°{{ res.id }}</span>
+                          <span class="res-date">{{ res.date + " " + res.hour }}</span>
+                        </div>
+                        <div class="res-main">
+                          <span class="res-user">{{ res.user }}</span>
+                          <span class="res-product">{{ res.item }}</span>
+                        </div>
+                      </div>
+                      <button class="action-btn-rmv" @click="markAsUnprocessed(res.id)" title="Confirm booking">
+                        X
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
-          <button class="action-btn" @click="markAsProcessed(res.id)" title="Confirm booking">
-            ✓
-          </button>
-        </div>
-      </div>
-    </div>
+          <div v-if="showAddModal" class="modal-backdrop" @click="closeAddModal">
+            <div class="modal-card add-place-modal" @click.stop>
 
-    <div class="res-column done-col">
-      <h4 class="col-title">✅ Processed History</h4>
-      
-      <div class="res-list">
-        <div v-for="res in processedReservations" :key="res.id" class="res-item-card done-item">
-          <div class="res-content">
-            <div class="res-top">
-              <span class="res-id">User n°{{ res.id }}</span>
-              <span class="res-date">{{ res.date + " " + res.hour}}</span>
-            </div>
-            <div class="res-main">
-              <span class="res-user">{{ res.user }}</span>
-              <span class="res-product">{{ res.item }}</span>
-            </div>
-          </div>
-          <button class="action-btn-rmv" @click="markAsUnprocessed(res.id)" title="Confirm booking">
-            X
-          </button>
-        </div>
-      </div>
-    </div>
+              <div class="modal-header-row">
+                <div class="cute-icon">✨</div>
+                <h3>Add a New Gem</h3>
+              </div>
 
-  </div>
-</div>
+              <form @submit.prevent="submitNewPlace" class="add-place-form">
+
+                <div class="form-row">
+                  <div class="form-group half">
+                    <label>Category</label>
+                    <select v-model="newPlace.category" required @change="newPlace.subCategory = ''">
+                      <option disabled value="">Select...</option>
+                      <option value="places">Places</option>
+                      <option value="hotels">Hotels</option>
+                      <option value="restaurants">Restaurants</option>
+                      <option value="activities">Activities</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group half">
+                    <label>Sub-Category</label>
+                    <select v-model="newPlace.subCategory" required :disabled="!newPlace.category">
+                      <option disabled value="">Select...</option>
+                      <option v-for="sub in availableSubCategories" :key="sub" :value="sub">
+                        {{ sub }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group half">
+                    <label>Name (Short)</label>
+                    <input v-model="newPlace.name" type="text" placeholder="e.g. 📍 Raouche" required />
+                  </div>
+                  <div class="form-group half">
+                    <label>Full Title</label>
+                    <input v-model="newPlace.title" type="text" placeholder="e.g. The Majestic Raouche Rock" required />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Short Description</label>
+                  <input v-model="newPlace.shortDesc" type="text" placeholder="One line summary..." required />
+                </div>
+
+                <div class="form-group">
+                  <label>Long Description</label>
+                  <textarea v-model="newPlace.longDesc" rows="3" placeholder="Detailed story..." required></textarea>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group half">
+                    <label>Image Path</label>
+                    <input v-model="newPlace.imageUrl" type="text" placeholder="/images/example.jpg" required />
+                  </div>
+                  <div class="form-group half">
+                    <label>Price (Optional)</label>
+                    <input v-model="newPlace.price" type="number" placeholder="€" />
+                  </div>
+                </div>
+
+                <div class="form-row three-cols">
+                  <div class="form-group">
+                    <label>Lat</label>
+                    <input v-model="newPlace.lat" type="number" step="any" placeholder="33.8..." />
+                  </div>
+                  <div class="form-group">
+                    <label>Lng</label>
+                    <input v-model="newPlace.lng" type="number" step="any" placeholder="35.5..." />
+                  </div>
+                  <div class="form-group">
+                    <label>Phone</label>
+                    <input v-model="newPlace.phone" type="text" placeholder="+961..." />
+                  </div>
+                </div>
+
+                <div class="cute-actions">
+                  <button type="button" class="btn-keep" @click="closeAddModal">Cancel</button>
+                  <button type="submit" class="btn-confirm-add">Save Place</button>
+                </div>
+
+              </form>
+            </div>            
           </div>
+
+                        <div v-if="showDeleteListModal" class="modal-backdrop" @click="showDeleteListModal = false">
+                <div class="modal-card delete-list-modal" @click.stop>
+                  <div class="modal-header-row">
+                    <div class="cute-icon">🗑️</div>
+                    <h3>Manage Inventory</h3>
+                  </div>
+                  <p class="modal-subtitle">Select an item to remove it permanently.</p>
+
+                  <div class="delete-list-container">
+                    <div class="list-header">
+                      <span>ID</span>
+                      <span>Name</span>
+                      <span>Category</span>
+                      <span>Action</span>
+                    </div>
+
+                    <div class="scrollable-list">
+                      <div v-for="item in allItems" :key="item.id" class="list-row">
+                        <span class="row-id">#{{ item.id }}</span>
+                        <span class="row-name">{{ item.name }}</span>
+                        <span class="row-cat badge-chip">{{ item.category }}</span>
+                        <button class="btn-icon-delete" @click="confirmDeletion(item)">✕</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="itemToDelete" class="modal-backdrop z-high" @click="cancelDeletion">
+                <div class="modal-card cute-modal" @click.stop>
+                  <div class="cute-icon">⚠️</div>
+                  <h3>Are you sure?</h3>
+                  <p>
+                    You are about to delete <strong>{{ itemToDelete.name }}</strong>.
+                    This will also delete all related reservations and favorites.
+                  </p>
+                  <div class="cute-actions">
+                    <button class="btn-keep" @click="cancelDeletion">Cancel</button>
+                    <button class="btn-confirm-cancel" @click="executeDelete">Yes, Delete it</button>
+                  </div>
+                </div>
+              </div>
         </section>
 
       </main>
@@ -391,16 +542,16 @@
       </div>
     </div>
     <div v-if="showCancelModal" class="modal-backdrop" @click="showCancelModal = false">
-  <div class="modal-card cute-modal" @click.stop>
-    <div class="cute-icon">😢</div>
-    <h3>Change of plans?</h3>
-    <p>Are you sure you want to cancel your reservation at <strong>{{ tripToCancel?.title }}</strong>?</p>
-    <div class="cute-actions">
-      <button class="btn-keep" @click="showCancelModal = false">No, Keep it</button>
-      <button class="btn-confirm-cancel" @click="confirmCancel">Yes, Cancel it</button>
+      <div class="modal-card cute-modal" @click.stop>
+        <div class="cute-icon">😢</div>
+        <h3>Change of plans?</h3>
+        <p>Are you sure you want to cancel your reservation at <strong>{{ tripToCancel?.title }}</strong>?</p>
+        <div class="cute-actions">
+          <button class="btn-keep" @click="showCancelModal = false">No, Keep it</button>
+          <button class="btn-confirm-cancel" @click="confirmCancel">Yes, Cancel it</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
   </div>
 </template>
 
@@ -408,15 +559,17 @@
 import { ref, onMounted, computed } from "vue"
 import { useRouter } from "vue-router"
 import { useFavorites } from "@/store/favorites.js"
-import api from "@/services/api.js" 
+import api from "@/services/api.js"
 import ItemCard from "@/components/ItemCard.vue"
+import { logout } from "@/store/auth.js"
 
 const router = useRouter()
-const { favoriteItems } = useFavorites()
+const { favoriteItems, initFavorites } = useFavorites()
+
 
 const activeTab = ref("info")
-const allItems = ref([]) 
-const orders = ref([])   
+const allItems = ref([])
+const orders = ref([])
 const securityError = ref("")
 const securitySuccess = ref("")
 const adminReservations = ref([])
@@ -426,8 +579,123 @@ const isModalOpen = ref(false)
 const selectedDayEvents = ref([])
 const selectedDateString = ref("")
 
-const user = ref({ id: "", name: "", email: "", role: "" })  
+const user = ref({ id: "", name: "", email: "", role: "" })
 const securityForm = ref({ currentPassword: "", newPassword: "", confirmPassword: "" })
+
+const isEditingName = ref(false);
+const tempName = ref("");
+
+const showAddModal = ref(false);
+const showDeleteListModal = ref(false); // Pour la liste
+const itemToDelete = ref(null);
+
+const confirmDeletion = (item) => {
+  itemToDelete.value = item;
+};
+
+const cancelDeletion = () => {
+  itemToDelete.value = null;
+};
+
+const executeDelete = async () => {
+  if (!itemToDelete.value) return;
+
+  try {
+    await api.deleteProduct(itemToDelete.value.id);
+    console.log("Item deleted:", itemToDelete.value.id);
+    
+    allItems.value = allItems.value.filter(i => i.id !== itemToDelete.value.id);
+
+    itemToDelete.value = null; 
+    
+  } catch (error) {
+    console.error("Erreur suppression:", error);
+    alert("Could not delete item.");
+  }
+};
+
+// Structure des données vide
+const initialFormState = {
+  category: '',
+  subCategory: '',
+  name: '',
+  title: '',
+  shortDesc: '',
+  longDesc: '',
+  imageUrl: '',
+  price: null,
+  lat: null,
+  lng: null,
+  phone: null
+};
+
+const categoriesData = {
+  places: ['Beirut', 'North', 'South', 'Bekaa'],
+  restaurants: ['Lebanese', 'Italian', 'French', 'Street', 'Fast'],
+  hotels: ['Luxury', 'Boutique', 'Budget'],
+  activities: ['Outdoor', 'Cultural']
+};
+
+const newPlace = ref({ ...initialFormState });
+
+const availableSubCategories = computed(() => {
+  return newPlace.value.category ? categoriesData[newPlace.value.category] : [];
+});
+
+const closeAddModal = () => {
+  showAddModal.value = false;
+  newPlace.value = { ...initialFormState };
+};
+
+const submitNewPlace = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPlace.value)
+    });
+
+    if (response.ok) {
+      alert("New place added successfully! 🎉");
+      closeAddModal();
+      // Optionnel : recharger la liste des items pour mettre à jour le compteur
+      // fetchAllItems(); 
+    } else {
+      alert("Error saving place.");
+    }
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+
+const saveName = async () => {
+  if (tempName.value.trim() === "") return;
+  const newName = tempName.value.trim();
+  const oldName = user.value.name;
+  user.value.name = newName;
+  localStorage.setItem("user", JSON.stringify(user.value));
+  isEditingName.value = false;
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/users/${user.value.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name: newName })
+    });
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.error("Erreur sauvegarde :", error);
+    user.value.name = oldName;
+    localStorage.setItem("user", JSON.stringify(user.value));
+    alert("Impossible de sauvegarder le nom. Vérifiez votre connexion.");
+  }
+};
 
 // --- COMPUTED ---
 const sidebarItems = computed(() => {
@@ -441,7 +709,7 @@ const sidebarItems = computed(() => {
   return items
 })
 const favoritedItems = computed(() => {
-    return favoriteItems.value || [];
+  return favoriteItems.value || [];
 });
 
 const userInitials = computed(() => {
@@ -463,56 +731,72 @@ const processedReservations = computed(() => {
   return adminReservations.value.filter(r => r.status === 'completed');
 });
 
+const canceledReservations = computed(() => {
+  return adminReservations.value.filter(r => r.status === 'cancelled');
+});
+
+const delFromDatabase = async (id) => {
+  try {
+    // 1. On dit au serveur de mettre à jour
+    await fetch(`http://localhost:3000/api/admin/bookings/delete/${id}`, {
+      method: 'DELETE'
+    });
+    adminReservations.value = adminReservations.value.filter(r => r.id !== id);
+  } catch (e) {
+    console.error("Erreur suppression:", e);
+  }
+};
+
 const fetchAdminBookings = async () => {
-    try {
-        const response = await fetch('http://localhost:3000/api/admin/bookings');
-        const data = await response.json();
-        
-        // On mappe les données SQL pour qu'elles collent à ton affichage
-        adminReservations.value = data.map(row => ({
-            id: row.id,
-            user: row.user_name,     // Vient du JOIN users
-            item: row.product_name,  // Vient du JOIN products
-            date: row.booking_date,
-            hour: row.booking_time,
-            status: row.status
-        }));
-    } catch (e) {
-        console.error("Erreur chargement admin:", e);
-    }
+  try {
+    const response = await fetch('http://localhost:3000/api/admin/bookings');
+    const data = await response.json();
+
+    // On mappe les données SQL pour qu'elles collent à ton affichage
+    adminReservations.value = data.map(row => ({
+      id: row.id,
+      user: row.user_name,     // Vient du JOIN users
+      item: row.product_name,  // Vient du JOIN products
+      date: row.booking_date,
+      hour: row.booking_time,
+      status: row.status
+    }));
+  } catch (e) {
+    console.error("Erreur chargement admin:", e);
+  }
 };
 
 // Action pour valider (Appel API)
 const markAsProcessed = async (id) => {
   try {
-      // 1. On dit au serveur de mettre à jour
-      await fetch(`http://localhost:3000/api/admin/bookings/${id}/complete`, {
-          method: 'PUT'
-      });
+    // 1. On dit au serveur de mettre à jour
+    await fetch(`http://localhost:3000/api/admin/bookings/${id}/complete`, {
+      method: 'PUT'
+    });
 
-      // 2. On met à jour localement sans recharger la page
-      const reservation = adminReservations.value.find(r => r.id === id);
-      if (reservation) {
-        reservation.status = 'completed';
-      }
+    // 2. On met à jour localement sans recharger la page
+    const reservation = adminReservations.value.find(r => r.id === id);
+    if (reservation) {
+      reservation.status = 'completed';
+    }
   } catch (e) {
-      console.error("Erreur validation:", e);
+    console.error("Erreur validation:", e);
   }
 };
 
 const markAsUnprocessed = async (id) => {
   try {
-      // 1. On dit au serveur de mettre à jour
-      await fetch(`http://localhost:3000/api/admin/bookings/${id}/pending`, {
-          method: 'PUT'
-      });
+    // 1. On dit au serveur de mettre à jour
+    await fetch(`http://localhost:3000/api/admin/bookings/${id}/pending`, {
+      method: 'PUT'
+    });
 
-      const reservation = adminReservations.value.find(r => r.id === id);
-      if (reservation) {
-        reservation.status = 'pending';
-      }
+    const reservation = adminReservations.value.find(r => r.id === id);
+    if (reservation) {
+      reservation.status = 'pending';
+    }
   } catch (e) {
-      console.error("Erreur validation:", e);
+    console.error("Erreur validation:", e);
   }
 };
 
@@ -528,7 +812,7 @@ const paddingDays = computed(() => {
 })
 const changeMonth = (offset) => calendarDate.value = new Date(calendarDate.value.setMonth(calendarDate.value.getMonth() + offset))
 const isToday = (day) => {
-  const t = new Date(); 
+  const t = new Date();
   return t.getDate() === day && t.getMonth() === calendarDate.value.getMonth() && t.getFullYear() === calendarDate.value.getFullYear()
 }
 const getEventsForDay = (day) => {
@@ -544,7 +828,14 @@ const openDayModal = (day) => {
 const closeModal = () => { isModalOpen.value = false }
 
 const updatePassword = () => { securitySuccess.value = "Password updated (demo)." }
-const handleLogout = () => { localStorage.removeItem("user"); router.push("/login") }
+const handleLogout = () => {
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  logout();
+  initFavorites(user);
+  router.push("/login")
+}
+
 // --- CANCEL LOGIC ADDITION ---
 const showCancelModal = ref(false)
 const tripToCancel = ref(null)
@@ -588,7 +879,7 @@ onMounted(async () => {
   user.value = JSON.parse(storedUser)
 
   if (user.value && user.value.role === 'admin') {
-      fetchAdminBookings();
+    fetchAdminBookings();
   }
 
   try {
@@ -598,12 +889,12 @@ onMounted(async () => {
     const res = await fetch(`http://localhost:3000/api/my-bookings/${user.value.id}`)
     if (res.ok) {
       const data = await res.json()
-      
+
       orders.value = data.map(b => ({
         id: b.order_id,
         title: b.product_name,
         // Map image safely
-        image: b.product_image || 'https://via.placeholder.com/400x250?text=No+Image', 
+        image: b.product_image || 'https://via.placeholder.com/400x250?text=No+Image',
         category: b.category,
         date: b.booking_date ? b.booking_date.split('T')[0] : '',
         time: b.booking_time,
@@ -620,11 +911,14 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-*{color :black;}
+* {
+  color: black;
+}
+
 /* Page Layout */
 .account-shell {
   min-height: 100vh;
-  background: radial-gradient(circle at top left, #f6f1dd 0, #fdfdfb 40%, #ffffff 100%);
+  background: linear-gradient(to bottom, #c3a52d 0, #fff8dc 15%, #ffffff 100%);
   padding: 40px 0;
 }
 
@@ -646,7 +940,7 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   gap: 32px;
-  padding-top:1.43%;
+  padding-top: 1.43%;
 }
 
 /* Sidebar */
@@ -767,7 +1061,7 @@ onMounted(async () => {
   font-size: 14px;
   color: #444;
   transition: all 0.2s ease;
-  text-decoration: none; 
+  text-decoration: none;
 }
 
 .sidebar-icon {
@@ -800,7 +1094,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 22px;
-  min-height: 600px; 
+  min-height: 600px;
 }
 
 .top-cards {
@@ -851,8 +1145,15 @@ onMounted(async () => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .panel-header {
@@ -881,8 +1182,16 @@ onMounted(async () => {
   gap: 18px;
 }
 
-.QA-section{
-  max-width: 80%;
+.admin-group {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 4fr 6fr;
+  /* 1 part gauche, 2 parts droite */
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 25px;
+  border: none !important;
+  /* Pour écraser ton style inline temporaire */
 }
 
 .info-card {
@@ -890,6 +1199,16 @@ onMounted(async () => {
   border-radius: 18px;
   padding: 16px 16px 18px;
   border: 1px solid #ece7d6;
+}
+
+.cancel-card .info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  max-height: 125px;
+  overflow-y: auto;
+  width: 100%;
 }
 
 .info-card h3 {
@@ -1103,13 +1422,15 @@ onMounted(async () => {
   padding: 20px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
   transform: scale(0.95);
   animation: popIn 0.2s ease forwards;
 }
 
 @keyframes popIn {
-  to { transform: scale(1); }
+  to {
+    transform: scale(1);
+  }
 }
 
 .modal-header {
@@ -1339,7 +1660,7 @@ label {
   color: #6a6a6a;
 }
 
-.tips-list li + li {
+.tips-list li+li {
   margin-top: 4px;
 }
 
@@ -1347,7 +1668,7 @@ label {
 
 /* La carte globale prend 2 colonnes sur grand écran */
 .reservation-card {
-  grid-column: span 2; 
+  grid-column: span 2;
 }
 
 .res-header {
@@ -1395,16 +1716,21 @@ label {
   gap: 12px;
   max-height: 350px;
   overflow-y: auto;
-  padding-right: 5px; /* Espace pour la scrollbar */
+  padding-right: 5px;
+  /* Espace pour la scrollbar */
 }
 
 /* STYLE DES CARTES INDIVIDUELLES */
 .res-item-card {
+  width: 100%;
+  /* Force la carte à prendre toute la largeur du parent */
+  box-sizing: border-box;
   background: white;
   padding: 12px;
   border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.04);
-  border-left: 4px solid #d97706; /* Orange pour pending */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  border-left: 4px solid #d97706;
+  /* Orange pour pending */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1413,12 +1739,13 @@ label {
 
 .res-item-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
 /* Style spécifique pour items terminés */
 .done-item {
-  border-left: 4px solid #10b981; /* Vert pour done */
+  border-left: 4px solid #10b981;
+  /* Vert pour done */
   opacity: 0.8;
   background: #fff;
 }
@@ -1436,7 +1763,9 @@ label {
   color: #94a3b8;
 }
 
-.res-id { font-weight: bold; }
+.res-id {
+  font-weight: bold;
+}
 
 .res-main {
   display: flex;
@@ -1475,6 +1804,7 @@ label {
   color: white;
   transform: scale(1.1);
 }
+
 .action-btn-rmv {
   background: #fdecec;
   color: #960505;
@@ -1494,6 +1824,86 @@ label {
   background: #b91010;
   color: white;
   transform: scale(1.1);
+}
+
+/* SAMLL */
+
+.action-btn-small {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #d1fae5;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.action-btn-small:hover {
+  background: #10b981;
+  color: white;
+  transform: scale(1.1);
+}
+
+.action-btn-small-rmv {
+  background: #fdecec;
+  color: #960505;
+  border: 1px solid #fad1d1;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.action-btn-small-rmv:hover {
+  background: #b91010;
+  color: white;
+  transform: scale(1.1);
+}
+
+.action-btn-del {
+  background: #d7d3d3;
+  color: #7a7a7a;
+  border: 1px solid #c6c6c6;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+}
+
+.action-btn-del:hover {
+  background: #bdbebe;
+  color: white;
+  transform: scale(1.1);
+}
+
+.name-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-direction: row;
+}
+
+.edit-input {
+  border: 1px solid #d8b723;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  width: 120px;
 }
 
 .empty-state-mini {
@@ -1520,6 +1930,7 @@ label {
   transition: 0.2s;
   margin-top: 10px;
 }
+
 .btn-cancel-trip:hover {
   background: #e74c3c;
   color: white;
@@ -1529,16 +1940,19 @@ label {
   text-align: center;
   max-width: 320px !important;
 }
+
 .cute-icon {
   font-size: 40px;
   margin-bottom: 10px;
 }
+
 .cute-actions {
   display: flex;
   gap: 10px;
   justify-content: center;
   margin-top: 20px;
 }
+
 .btn-keep {
   background: #eee;
   border: none;
@@ -1548,6 +1962,7 @@ label {
   font-weight: 600;
   color: #555;
 }
+
 .btn-confirm-cancel {
   background: #e74c3c;
   border: none;
@@ -1558,31 +1973,168 @@ label {
   color: white;
 }
 
-.transparent-panel { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
-.orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; margin-top: 20px; }
-.trip-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f0f0f0; display: flex; flex-direction: column; }
-.trip-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-.trip-image { height: 160px; background-size: cover; background-position: center; position: relative; }
-.trip-overlay { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; }
-.trip-category { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); color: white; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 20px; font-weight: 700; }
-.trip-status { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600; text-transform: capitalize; }
-.status-pending { background: #fff8e1; color: #f39c12; border: 1px solid #f39c12; }
-.status-confirmed { background: #e8f5e9; color: #27ae60; border: 1px solid #27ae60; }
-.trip-details { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-.trip-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-.trip-header h3 { margin: 0; font-size: 18px; font-weight: 700; color: #2c3e50; line-height: 1.3; }
-.trip-id { font-size: 11px; color: #999; margin-top: 2px; }
-.trip-info-row { display: flex; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #eee; }
-.info-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; }
-.trip-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
-.trip-guests { font-size: 13px; color: #666; font-weight: 500; }
-.trip-price { font-size: 16px; font-weight: 700; color: #324c3f; }
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #9ca3af;
+  padding: 5px;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.edit-btn:hover {
+  color: #333;
+  transform: scale(1.2) rotate(15deg);
+}
+
+.transparent-panel {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.trip-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.trip-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.trip-image {
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.trip-overlay {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.trip-category {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  color: white;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.trip-status {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #fff8e1;
+  color: #f39c12;
+  border: 1px solid #f39c12;
+}
+
+.status-confirmed {
+  background: #e8f5e9;
+  color: #27ae60;
+  border: 1px solid #27ae60;
+}
+
+.trip-details {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.trip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.trip-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1.3;
+}
+
+.trip-id {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.trip-info-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #eee;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #555;
+}
+
+.trip-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trip-guests {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.trip-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #324c3f;
+}
 
 /* Mobile : Une seule colonne */
 @media (max-width: 768px) {
   .reservation-grid {
     grid-template-columns: 1fr;
   }
+
   .reservation-card {
     grid-column: span 1;
   }
@@ -1619,6 +2171,7 @@ label {
 }
 
 @media (max-width: 720px) {
+
   .info-grid,
   .security-layout {
     grid-template-columns: 1fr;
@@ -1648,31 +2201,82 @@ label {
     justify-content: flex-start;
   }
 }
+
+/* --- RESPONSIVE DESIGN (Mobile & Tablette) --- */
+
+/* Étape 1 : Tablette et petits écrans (moins de 992px) */
+@media (max-width: 992px) {
+  .admin-group {
+    /* On casse la grille : tout le monde passe en une seule colonne */
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* On laisse la hauteur s'adapter au contenu au lieu de forcer 100% */
+  .info-card {
+    height: auto;
+    min-height: 200px;
+  }
+
+  /* On agrandit un peu la zone de scroll sur mobile pour voir plus d'items */
+  .cancel-card .info-row {
+    max-height: 350px;
+  }
+}
+
+/* Étape 2 : Mobile très étroit (moins de 480px) */
+@media (max-width: 480px) {
+  .res-item-card {
+    /* On garde l'alignement horizontal mais on réduit les espaces */
+    padding: 10px;
+  }
+
+  /* Si le nom de l'hôtel est long, on empile le nom du user et de l'hôtel */
+  .res-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .res-user {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+  }
+
+  .res-product {
+    font-size: 0.8rem;
+  }
+
+  /* On réduit un peu la date pour qu'elle tienne sur une ligne */
+  .res-top {
+    font-size: 0.7rem;
+  }
+}
+
 /* CUTE LOGOUT BUTTON STYLE */
 .logout-btn-red {
   width: 100%;
   margin-top: 20px;
   padding: 14px;
   border: none;
-  
+
   /* Make it a "Pill" shape */
-  border-radius: 50px; 
-  
+  border-radius: 50px;
+
   /* Soft Gradient (Coral to Pink) instead of flat red */
   background: linear-gradient(135deg, #ff9a9e 0%, #ff6b6b 100%);
-  
+
   color: white;
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.5px;
   cursor: pointer;
-  
+
   /* Soft glowing shadow */
   box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
-  
+
   /* Smooth bubbly animation */
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  
+
   /* Center text */
   display: flex;
   align-items: center;
@@ -1689,5 +2293,200 @@ label {
   /* Click effect */
   transform: scale(0.95);
   box-shadow: 0 5px 15px rgba(255, 107, 107, 0.2);
+}
+
+/* --- ADD PLACE MODAL --- */
+.add-place-modal {
+  width: 600px;
+  /* Plus large que la cancel modal */
+  max-width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  /* Permet de scroller si l'écran est petit */
+  padding: 25px;
+  background: #fff;
+  border-radius: 16px;
+}
+
+.modal-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.add-place-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.half {
+  flex: 1;
+}
+
+.three-cols .form-group {
+  flex: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #D4AF37;
+  outline: none;
+}
+
+.btn-confirm-add {
+  background: #10b981;
+  /* Vert */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.1s;
+}
+
+.btn-confirm-add:hover {
+  background: #059669;
+  transform: scale(1.02);
+}
+
+.quick-action-btn {
+  background: none;
+  border: none;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  padding: 0;
+}
+
+.quick-action-btn:hover {
+  color: #2563eb;
+}
+
+/* Bouton dans Quick Actions */
+.btn-remove {
+  color: #e11d48; /* Rouge rose */
+  margin-top: 5px; /* Petit espace entre les boutons */
+}
+.btn-remove:hover {
+  color: #be123c;
+  background-color: #fff1f2;
+  border-radius: 5px;
+}
+
+/* MODALE LISTE */
+.delete-list-modal {
+  width: 500px;
+  max-width: 95%;
+  padding: 25px;
+  background: #fff;
+  border-radius: 16px;
+}
+
+.modal-subtitle {
+  color: #64748b;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.delete-list-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.list-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 100px 50px;
+  background: #f8fafc;
+  padding: 10px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.scrollable-list {
+  max-height: 300px; /* Scroll si trop d'items */
+  overflow-y: auto;
+}
+
+.list-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 100px 50px;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  transition: background 0.1s;
+}
+
+.list-row:hover {
+  background: #fef2f2; /* Rouge très pâle au survol */
+}
+
+.row-id { color: #94a3b8; font-size: 0.8rem; }
+.row-name { font-weight: 600; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-cat { font-size: 0.7rem; text-align: center; }
+
+/* Bouton croix dans la liste */
+.btn-icon-delete {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.btn-icon-delete:hover {
+  transform: scale(1.2);
+}
+
+/* Z-Index High pour la confirmation */
+.z-high {
+  z-index: 10000 !important; /* Pour passer au-dessus de la première modale */
+}
+
+.edit-buttons{
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-direction: column;
 }
 </style>

@@ -23,11 +23,13 @@ export function useFavorites() {
             } catch (e) {
                 console.error("Erreur init API favorites:", e);
             }
+            console.log("Favoris chargés depuis API pour user", user.id);
         } else {
             // CAS 2 : Invité -> LocalStorage
             currentUserId.value = null;
             const local = localStorage.getItem('guest_favorites');
             favoriteItems.value = local ? JSON.parse(local) : [];
+            console.log("Favoris chargés depuis LocalStorage pour invité");
         }
     }
 
@@ -43,10 +45,9 @@ export function useFavorites() {
 
         // 2. Sauvegarde (API ou LocalStorage)
         if (currentUserId.value) {
+            console.log("Sauvegarde des favoris via API pour user", currentUserId.value);
             try {
-                const url = exists 
-                    ? `http://localhost:3000/api/favorites/${currentUserId.value}/${item.id}` // DELETE
-                    : `http://localhost:3000/api/favorites`; // POST
+                const url = exists ? `http://localhost:3000/api/favorites/${currentUserId.value}/${item.id}` : `http://localhost:3000/api/favorites`;
                 
                 const method = exists ? 'DELETE' : 'POST';
                 const body = exists ? null : JSON.stringify({ userId: currentUserId.value, productId: item.id });
@@ -60,6 +61,7 @@ export function useFavorites() {
                 console.error("Erreur API save:", e);
             }
         } else {
+            console.log("Sauvegarde des favoris via LocalStorage pour invité");
             localStorage.setItem('guest_favorites', JSON.stringify(favoriteItems.value));
         }
     }
