@@ -19,6 +19,7 @@ import { useRoute } from 'vue-router';
 import Navbar from './components/NavbarDiv.vue';
 import Footer from './components/FooterDiv.vue';
 import { useFavorites } from '@/store/favorites.js';
+import { isLoggedIn } from './store/auth';
 
 // 2. On récupère initFavorites ici
 const { favoriteIds, initFavorites } = useFavorites();
@@ -48,7 +49,8 @@ const showFavBtn = computed(() => {
   
   return favoriteIds.value.size > 0 
       && route.name !== 'place-detail' 
-      && route.name !== 'account';
+      && route.name !== 'account'
+      && isLoggedIn.value === false;
 });
 
 const mainClass = computed(() => {

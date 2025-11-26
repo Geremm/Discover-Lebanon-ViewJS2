@@ -149,7 +149,6 @@ app.post('/api/reserve', (req, res) => {
       console.error("Error saving booking:", err);
       return res.status(500).json({ error: "Database error" });
     }
-    console.log(result);
     res.status(201).json({ message: "Reservation successful", id: result.insertId });
   });
 });
@@ -211,8 +210,6 @@ app.get('/api/admin/bookings', (req, res) => {
               row.booking_time = ""
              
         });
-
-        console.log(results);
         res.json(results);
     });
 });
@@ -357,9 +354,6 @@ app.get('/api/favorites/:userId', (req, res) => {
         });
     });
 });
-// ============================================
-// CANCEL RESERVATION ROUTE
-// ============================================
 app.post('/api/cancel-booking/:id', (req, res) => {
   const bookingId = req.params.id;
   
@@ -374,6 +368,87 @@ app.post('/api/cancel-booking/:id', (req, res) => {
     res.json({ success: true, message: "Booking cancelled" });
   });
 });
+app.put('/api/users/:id', (req, res) => {
+    const userId = req.params.id;
+    const { name } = req.body;
+
+    if (!name) {
+        return res.status(400).json({ success: false, message: "Nom manquant" });
+    }
+
+    const sql = "UPDATE users SET name = ? WHERE id = ?";
+
+    db.query(sql, [name, userId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false, message: "Erreur SQL" });
+        }
+        
+        res.json({ success: true, message: "Nom mis à jour avec succès" });
+    });
+});
+
+app.delete('/api/admin/bookings/delete/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = "DELETE FROM bookings WHERE id = ?";
+    
+    db.query(sql, [id], (err, result) => {
+        if (err) return res.status(500).json({ error: "Erreur DB" });
+        res.json({ success: true, message: "Réservation supprimée !" });
+    });
+});
+
+app.post('/api/products', (req, res) => {
+    const { 
+        id,
+        category, subCategory, name, title, 
+        shortDesc, longDesc, imageUrl, 
+        price, lat, lng, phone 
+    } = req.body;
+
+    // Vérification minimale
+    if (!category || !name || !imageUrl) {
+        return res.status(400).json({ success: false, message: "Champs obligatoires manquants" });
+    }
+
+    const sql = `
+        INSERT INTO products 
+        (id, category, subCategory, name, title, shortDesc, longDesc, imageUrl, price, lat, lng, phone)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+        id,
+        category, subCategory, name, title, 
+        shortDesc, longDesc, imageUrl, 
+        price || null, lat || null, lng || null, phone || null
+    ];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false, message: "Erreur SQL" });
+        }
+        res.json({ success: true, message: "Produit ajouté", id: result.insertId });
+    });
+});
+
+
+// SUPPRIMER UN PRODUIT
+app.delete('/api/products/:id', (req, res) => {
+    const id = req.params.id;
+    
+    const sql = "DELETE FROM products WHERE id = ?";
+    
+    db.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false, message: "Erreur SQL" });
+        }
+        res.json({ success: true, message: "Produit supprimé !" });
+    });
+});
+
 app.listen(port, () => {
  console.log(`Server is running at http://localhost:${port}`);
 });

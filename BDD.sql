@@ -33,7 +33,7 @@ CREATE TABLE `bookings` (
   `status` varchar(50) DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,6 +42,7 @@ CREATE TABLE `bookings` (
 
 LOCK TABLES `bookings` WRITE;
 /*!40000 ALTER TABLE `bookings` DISABLE KEYS */;
+INSERT INTO `bookings` VALUES (1,3,303,'2025-11-28','20:00',2,'','completed','2025-11-25 17:46:06'),(8,1,303,'2025-12-05','20:00',2,'','pending','2025-11-26 05:17:12');
 /*!40000 ALTER TABLE `bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -80,7 +81,7 @@ DROP TABLE IF EXISTS `products`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `products` (
-  `id` int unsigned NOT NULL,
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
   `category` varchar(50) NOT NULL,
   `subCategory` varchar(50) DEFAULT NULL,
   `name` varchar(100) NOT NULL,
@@ -93,7 +94,7 @@ CREATE TABLE `products` (
   `lng` decimal(11,8) DEFAULT NULL,
   `phone` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=413 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -129,7 +130,7 @@ CREATE TABLE `user_favorites` (
 
 LOCK TABLES `user_favorites` WRITE;
 /*!40000 ALTER TABLE `user_favorites` DISABLE KEYS */;
-INSERT INTO `user_favorites` VALUES (3,6),(3,8),(3,14),(1,202),(2,315);
+INSERT INTO `user_favorites` VALUES (1,3),(1,203),(1,210),(1,213),(1,303);
 /*!40000 ALTER TABLE `user_favorites` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -157,7 +158,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Geremy','gerem.champ@free.fr','$2b$10$0aAxOw3wQLZ1O9NcRvyDq.hsjHYMDcM/zt5tdi/9Z6o6E3NsbV116','admin'),(2,'Matt','matthieu.ruis@gmail.com','$2b$10$Wn7EllcZEXNNsqkU4f2fBuCGFJtGEDvsnJ.Waclsjdjs7YQhIc3A6','user'),(3,'Cricri','christinekhazzaka@outlook.com','$2b$10$fWpb4swqKuieuhRLQw/PPegEXb29BfhWrqq.G/pUuGN9sEC50iibS','user'),(4,'Nicole','Nicole.agret@free.fr','$2b$10$YLeZmyDCxZVzo/y5fVQwC.AxCsl1CSEGYsE1ZZLJAjTRVaTbvuLKK','user');
+INSERT INTO `users` VALUES (1,'Gerem','gerem.champ@free.fr','$2b$10$0aAxOw3wQLZ1O9NcRvyDq.hsjHYMDcM/zt5tdi/9Z6o6E3NsbV116','admin'),(2,'Matt','matthieu.ruis@gmail.com','$2b$10$Wn7EllcZEXNNsqkU4f2fBuCGFJtGEDvsnJ.Waclsjdjs7YQhIc3A6','user'),(3,'Cricri','christinekhazzaka@outlook.com','$2b$10$fWpb4swqKuieuhRLQw/PPegEXb29BfhWrqq.G/pUuGN9sEC50iibS','user'),(4,'Nicole','Nicole.agret@free.fr','$2b$10$YLeZmyDCxZVzo/y5fVQwC.AxCsl1CSEGYsE1ZZLJAjTRVaTbvuLKK','user');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -170,4 +171,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-26  1:40:54
+-- Dump completed on 2025-11-26 14:14:47
