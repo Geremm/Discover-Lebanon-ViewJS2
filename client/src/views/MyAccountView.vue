@@ -624,7 +624,7 @@ onMounted(async () => {
 /* Page Layout */
 .account-shell {
   min-height: 100vh;
-  background: radial-gradient(circle at top left, #f6f1dd 0, #fdfdfb 40%, #ffffff 100%);
+  background: linear-gradient(to bottom, #c3a52d 0, #fff8dc 15%, #ffffff 100%);
   padding: 40px 0;
 }
 
