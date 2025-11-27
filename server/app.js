@@ -13,7 +13,7 @@ const port = 3000;
 const JWT_SECRET = "KhazzDiscoverChris17";
 
 app.use(cors({
-  origin: "http://localhost:8081",
+  origin: "http://localhost:8080",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));app.use(express.json());
@@ -49,7 +49,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "",
   database: "efrei",
   port: 3306
 });
@@ -156,25 +156,24 @@ app.post('/api/reserve', (req, res) => {
   });
 });
 
+// 2. API TO GET RESERVATIONS FOR "MY ACCOUNT"
 app.get('/api/my-bookings/:userId', (req, res) => {
   const userId = req.params.userId;
 
   const sql = `
     SELECT 
       b.id AS order_id,
-      b.product_id,
-      b.user_id,
       b.booking_date,
       b.booking_time,
       b.guests,
       b.status,
       b.notes,
-      -- Ensure these column names match your 'products' table exactly
-      p.title AS product_name,   -- If your column is 'name', change this to p.name
-      p.imageUrl AS product_image, -- If your column is 'image', change this to p.image
-      p.category
+      p.title AS product_name,
+      p.imageUrl AS product_image,
+      p.category,
+      p.price AS product_price
     FROM bookings b
-    JOIN products p ON b.product_id = p.id
+    LEFT JOIN products p ON b.product_id = p.id  -- <--- CHANGED TO 'LEFT JOIN'
     WHERE b.user_id = ?
     ORDER BY b.booking_date DESC
   `;
@@ -184,7 +183,6 @@ app.get('/api/my-bookings/:userId', (req, res) => {
       console.error("Error fetching bookings:", err);
       return res.status(500).json({ error: "Database error" });
     }
-    
     res.json(results);
   });
 });

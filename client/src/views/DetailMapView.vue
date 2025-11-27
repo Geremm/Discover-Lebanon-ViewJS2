@@ -210,7 +210,6 @@ onUnmounted(() => {
   color: #333;
 }
 
-/* --- Carousel --- */
 .carousel {
   border-radius: 10px;
   overflow: hidden;
@@ -218,14 +217,13 @@ onUnmounted(() => {
 }
 
 .carousel-inner img {
-  border-radius: 8px; /* Attention: redondant avec .carousel overflow hidden, mais ok */
+  border-radius: 8px; 
   height: 350px;
   width: 100%;
   object-fit: cover;
   transition: opacity 0.5s ease-in-out;
 }
 
-/* --- Carte --- */
 #map {
   height: 400px;
   width: 100%;
@@ -239,7 +237,6 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* --- Détails de l'item (Gauche) --- */
 .item-title {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
@@ -271,6 +268,67 @@ onUnmounted(() => {
 
 .item-phone a:hover {
   text-decoration: underline;
+}
+/* CUTE & BOUNCY RESERVATION BUTTON */
+.reserve-btn-large {
+  width: 100%;
+  /* Soft Nature Gradient: Deep Green to Fresh Leaf */
+  background: linear-gradient(135deg, #ac8d30 0%, #977b29 100%);
+  color: white;
+  border: none;
+  
+  /* Pill Shape (Very Rounded) */
+  border-radius: 50px;
+  padding: 16px 24px;
+  
+  /* Typography */
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  
+  /* Centering */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  
+  /* Cute Shadow */
+  box-shadow: 0 8px 20px #977b29;
+  cursor: pointer;
+  
+  /* Fun Bouncy Animation */
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+/* HOVER EFFECT: Lifts up & Glows */
+.reserve-btn-large:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(50, 76, 63, 0.35);
+  background: linear-gradient(135deg,#977b29 0%,#c3a036 100%);
+}
+
+/* CLICK EFFECT: Squishes down slightly */
+.reserve-btn-large:active {
+  transform: scale(0.95);
+  box-shadow: 0 5px 10px rgba(50, 76, 63, 0.2);
+}
+
+/* OPTIONAL: Subtle Pulse Animation (Makes it look alive) */
+.reserve-btn-large::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50px;
+  box-shadow: 0 0 0 0 #c29e33;
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 #977b29; }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px #977b29; }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 #977b29; }
 }
 
 @media (max-width: 576px) {
