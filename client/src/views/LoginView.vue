@@ -12,7 +12,26 @@
 
         <form class="login-form" @submit.prevent="onLogin">
           <input type="email" v-model="email" placeholder="Email" required />
-          <input type="password" v-model="password" placeholder="Password" required />
+          <div class="password-wrapper">
+            <input :type="showPasswords ? 'text' : 'password'" v-model="password" placeholder="Mot de passe" required />
+
+            <span class="eye-icon" @click="togglePassword()">
+
+              <svg v-if="showPasswords" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+                <line x1="3" y1="3" x2="21" y2="21"></line>
+              </svg>
+
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+
+            </span>
+          </div>
 
           <button class="start-btn" type="submit">Login</button>
         </form>
@@ -47,6 +66,13 @@ const error = ref("")
 const API_URL = "http://localhost:3000"
 const router = useRouter()
 
+const showPasswords = ref(false)
+
+// Fonction pour basculer la visibilité
+const togglePassword = () => {
+  showPasswords.value = !showPasswords.value;
+};
+
 const onLogin = async () => {
   error.value = ""
 
@@ -68,7 +94,7 @@ const onLogin = async () => {
     localStorage.setItem("user", JSON.stringify(data.user))
     login(data.user)
 
-    const user = JSON.parse(localStorage.getItem('user')); 
+    const user = JSON.parse(localStorage.getItem('user'));
     initFavorites(user);
     router.push("/")
 
@@ -84,14 +110,14 @@ const onLogin = async () => {
   width: 100%;
   height: 100vh;
   display: flex;
-  justify-content: center;   
+  justify-content: center;
   align-items: center;
   /* Assurez-vous que le chemin de l'image est correct */
-  background-image: url('../assets/images/zeytunaaaa.jpg'); 
+  background-image: url('../assets/images/zeytunaaaa.jpg');
   background-position: center;
   background-size: cover;
 
-  
+
   /* IMPORTANT : Pour que le background prenne tout l'écran même avec le padding */
   box-sizing: border-box;
 }
@@ -106,43 +132,51 @@ const onLogin = async () => {
   overflow: hidden;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
   margin-top: 1.5%
 }
 
 /* LEFT SIDE - Centrage vertical amélioré */
 .login-left {
-  padding: 10px 60px; /* Un peu plus de padding sur les côtés */
+  padding: 10px 60px;
+  /* Un peu plus de padding sur les côtés */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centre tout verticalement */
+  justify-content: center;
+  /* Centre tout verticalement */
   height: 90%;
 }
 
 .brand {
   font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 2px; /* Espacement des lettres pour un look "Premium" */
+  letter-spacing: 2px;
+  /* Espacement des lettres pour un look "Premium" */
   font-weight: 700;
-  color: #8fa195; /* Un gris-vert subtil */
+  color: #8fa195;
+  /* Un gris-vert subtil */
   margin-bottom: 10px;
 }
 
 /* NOUVEAU : Style du séparateur (le cèdre) */
 .graphic-separator {
   margin-bottom: 20px;
-  color: #324c3f; /* Même vert que le bouton */
+  color: #324c3f;
+  /* Même vert que le bouton */
   display: flex;
   justify-content: flex-start;
-  font-size: 40px; /* Taille des emojis */
+  font-size: 40px;
+  /* Taille des emojis */
 }
 
 /* Amélioration de la typographie du titre */
 .headline {
-  font-size: 44px; /* Plus grand pour combler le vide */
+  font-size: 44px;
+  /* Plus grand pour combler le vide */
   line-height: 1.15;
   font-weight: 800;
-  margin-bottom: 40px; /* Marge augmentée pour aérer avant le formulaire */
+  margin-bottom: 40px;
+  /* Marge augmentée pour aérer avant le formulaire */
   color: #1a1a1a;
   letter-spacing: -1px;
 }
@@ -150,7 +184,8 @@ const onLogin = async () => {
 /* INPUTS */
 .login-form input {
   width: 100%;
-  padding: 16px 18px; /* Inputs un peu plus hauts */
+  padding: 16px 18px;
+  /* Inputs un peu plus hauts */
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   background: #f9f9f9;
@@ -162,8 +197,7 @@ const onLogin = async () => {
 .login-form input:focus {
   outline: none;
   background: #fff;
-  border-color: #324c3f; /* Focus vert au lieu de doré pour la cohérence */
-  box-shadow: 0 0 0 4px rgba(50, 76, 63, 0.1);
+  border-color: #324c3f;
 }
 
 /* BUTTON */
@@ -172,7 +206,8 @@ const onLogin = async () => {
   padding: 16px;
   border-radius: 14px;
   border: none;
-  background: #324c3f; /* Vert foncé */
+  background: #324c3f;
+  /* Vert foncé */
   color: white;
   font-weight: 600;
   font-size: 16px;
@@ -184,7 +219,8 @@ const onLogin = async () => {
 
 .start-btn:hover {
   background: #25392f;
-  transform: translateY(-2px); /* Petit effet de levier */
+  transform: translateY(-2px);
+  /* Petit effet de levier */
   box-shadow: 0 10px 20px rgba(37, 57, 47, 0.15);
 }
 
@@ -206,7 +242,8 @@ const onLogin = async () => {
   margin-top: 30px;
   font-size: 14px;
   color: #666;
-  text-align: center; /* Centré pour l'équilibre */
+  text-align: center;
+  /* Centré pour l'équilibre */
 }
 
 .bottom-text a {
@@ -234,17 +271,85 @@ const onLogin = async () => {
   .login-card {
     grid-template-columns: 1fr;
     height: auto;
-    min-height: 100vh; /* Prend tout l'écran sur mobile */
+    min-height: 100vh;
+    /* Prend tout l'écran sur mobile */
     border-radius: 0;
   }
+
   .login-right {
     display: none;
   }
+
   .login-left {
     padding: 40px 30px;
   }
+
   .headline {
     font-size: 32px;
   }
+}
+
+/* Le conteneur qui imite le champ de saisie */
+/* Le conteneur style "Email" */
+.password-wrapper {
+  display: flex;
+  align-items: center;
+  /* Changement ici : Fond gris clair au lieu de blanc */
+  background-color: #f9f9f9; 
+  /* Changement ici : Bordure gris très pâle au lieu de foncé */
+  border: 1px solid #e5e5e5; 
+  /* Coins un peu plus arrondis pour matcher l'image */
+  border-radius: 8px;        
+  padding: 10px 12px;
+  width: 100%;
+  max-width: 430px;
+  max-height: 52px;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+
+/* Optionnel : Effet quand on clique dedans (Focus) */
+.password-wrapper:focus-within {
+  background-color: #fff;       /* Devient blanc quand on écrit (souvent utilisé) */
+  border-color: #ccc;           /* La bordure fonce un peu */
+}
+
+/* Le reste ne change pas */
+.password-wrapper input {
+  border: none;
+  outline: none;
+  background: transparent;
+  flex-grow: 1;
+  font-size: 16px;
+  color: #333;
+  margin-right: 8px;
+  margin-bottom: 0;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.password-wrapper input::placeholder {
+  color: #6c757d; /* Couleur grise standard pour le placeholder */
+}
+
+.eye-icon {
+  display: flex;
+  cursor: pointer;
+  color: #555; /* Icône un peu moins noire pour aller avec le gris */
+}
+
+/* L'icône (l'œil) */
+.eye-icon {
+  display: flex;
+  cursor: pointer;
+  color: #000;
+  /* Couleur noire de l'icône */
+  align-items: center;
+  justify-content: center;
+}
+
+.eye-icon svg {
+  width: 20px;
+  height: 20px;
 }
 </style>

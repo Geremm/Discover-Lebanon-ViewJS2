@@ -60,7 +60,7 @@
           </div>
 
           <div class="top-card">
-            <div class="top-card-icon"></div>
+            <div class="top-card-icon">❤️</div>
             <div>
               <h3>Favorites</h3>
               <p>{{ favoritedItems.length }} place{{ favoritedItems.length !== 1 ? 's' : '' }} saved.</p>
@@ -856,7 +856,6 @@ const openDayModal = (day) => {
 }
 const closeModal = () => { isModalOpen.value = false }
 
-const updatePassword = () => { securitySuccess.value = "Password updated (demo)." }
 const handleLogout = () => {
   localStorage.removeItem("user");
   localStorage.removeItem("token");
@@ -898,6 +897,60 @@ const confirmCancel = async () => {
     console.error(err)
   }
 }
+
+
+const updatePassword = async () => {
+  // 1. Reset des messages
+  securityError.value = ""
+  securitySuccess.value = ""
+
+  // 2. Validation locale
+  if (securityForm.value.newPassword !== securityForm.value.confirmPassword) {
+    securityError.value = "New passwords do not match."
+    return
+  }
+
+  if (securityForm.value.newPassword.length < 8) {
+    securityError.value = "Password must be at least 8 characters."
+    return
+  }
+
+  try {
+    // 3. Appel API (PUT)
+    // On suppose que tu as l'ID de l'utilisateur dans user.value.id
+    const res = await fetch(`http://localhost:3000/api/users/${user.value.id}/password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        currentPassword: securityForm.value.currentPassword,
+        newPassword: securityForm.value.newPassword
+      })
+    })
+
+    const data = await res.json()
+
+    // 4. Gestion des erreurs (ex: mauvais mot de passe actuel)
+    if (!res.ok || !data.success) {
+      securityError.value = data.message || "Failed to update password"
+      return
+    }
+
+    // 5. Succès
+    securitySuccess.value = "Password updated successfully!"
+    
+    // On vide le formulaire
+    securityForm.value.currentPassword = ""
+    securityForm.value.newPassword = ""
+    securityForm.value.confirmPassword = ""
+
+  } catch (err) {
+    securityError.value = "Server error. Please try again later."
+    console.error(err)
+  }
+}
+
 // --- FETCH ---
 onMounted(async () => {
   const storedUser = localStorage.getItem("user")
@@ -2325,14 +2378,13 @@ label {
 /* --- ADD PLACE MODAL --- */
 .add-place-modal {
   width: 600px;
-  /* Plus large que la cancel modal */
   max-width: 95%;
   max-height: 90vh;
   overflow-y: auto;
-  /* Permet de scroller si l'écran est petit */
   padding: 25px;
   background: #fff;
   border-radius: 16px;
+  margin-top:2%;
 }
 
 .modal-header-row {
@@ -2352,6 +2404,7 @@ label {
 
 .form-row {
   display: flex;
+  flex-direction: column;
   gap: 15px;
 }
 
@@ -2359,7 +2412,7 @@ label {
   flex: 1;
 }
 
-.three-cols .form-group {
+.form-group {
   flex: 1;
 }
 

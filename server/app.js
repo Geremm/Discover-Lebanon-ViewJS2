@@ -247,7 +247,7 @@ function generateToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email },
     JWT_SECRET,
-    { expiresIn: "1h" }
+    { expiresIn: "30s" }
   );
 }
 
@@ -291,6 +291,7 @@ app.post("/api/login", (req, res) => {
       if (!match)
         return res.status(400).json({ success: false, message: "Invalid password" });
       const token = generateToken(user);
+      console.log("Generated JWT:", token);
       return res.json({
         success: true,
         message: "Login successful",
@@ -303,6 +304,38 @@ app.post("/api/login", (req, res) => {
   });
 });
 
+app.put('/api/users/:id/password', async (req, res) => {
+    const userId = req.params.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, message: "Champs manquants" });
+    }
+
+    // 1. On récupère l'utilisateur pour avoir son mot de passe actuel haché
+    db.query('SELECT * FROM users WHERE id = ?', [userId], async (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: "Erreur DB" });
+        if (results.length === 0) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+
+        const user = results[0];
+
+        // 2. On vérifie si l'ancien mot de passe est bon
+        const match = await bcrypt.compare(currentPassword, user.password);
+        if (!match) {
+            return res.status(401).json({ success: false, message: "Mot de passe actuel incorrect" });
+        }
+
+        // 3. On hache le nouveau mot de passe
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        // 4. On met à jour la base de données
+        db.query('UPDATE users SET password = ? WHERE id = ?', [hashedNewPassword, userId], (errUpdate) => {
+            if (errUpdate) return res.status(500).json({ success: false, message: "Erreur mise à jour" });
+            
+            res.json({ success: true, message: "Mot de passe modifié avec succès" });
+        });
+    });
+});
 // 1. AJOUTER UN FAVORI
 app.post('/api/favorites', (req, res) => {
     const { userId, productId } = req.body;
