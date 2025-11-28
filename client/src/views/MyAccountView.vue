@@ -758,7 +758,7 @@ const delFromBookingsDatabase = async (id) => {
     adminReservations.value = adminReservations.value.filter(r => r.id !== id);
   } catch (e) {
     orders.value.push(order_backup);
-    console.error("Erreur suppression:", e);
+    console.error("Error suppression:", e);
   }
 };
 
@@ -779,7 +779,7 @@ const fetchAdminBookings = async () => {
       status: row.status
     }));
   } catch (e) {
-    console.error("Erreur chargement admin:", e);
+    console.error("Error chargement admin:", e);
   }
 };
 
@@ -877,18 +877,15 @@ const confirmCancel = async () => {
   if (!tripToCancel.value) return
 
   try {
-    // Make sure your backend is running!
+    // 1. Send POST request to backend
     const res = await fetch(`http://localhost:3000/api/cancel-booking/${tripToCancel.value.id}`, {
       method: 'POST'
     })
 
     if (res.ok) {
-      // Find the trip in the list and mark it as cancelled instantly
-      const index = orders.value.findIndex(o => o.id === tripToCancel.value.id)
-      if (index !== -1) {
-        orders.value[index].status = 'cancelled'
-        orders.value[index].statusLabel = 'Cancelled'
-      }
+      // 2. REMOVE the item from the list instantly (Vanishes)
+      orders.value = orders.value.filter(order => order.id !== tripToCancel.value.id)
+      
       showCancelModal.value = false
     } else {
       alert("Could not cancel. Please try again.")

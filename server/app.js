@@ -392,15 +392,16 @@ app.get('/api/favorites/:userId', (req, res) => {
         });
     });
 });
+// Add this to server/app.js
 app.post('/api/cancel-booking/:id', (req, res) => {
   const bookingId = req.params.id;
   
-  // This updates the status in MySQL instead of deleting the row
+  // Update the status in the database to 'cancelled'
   const sql = "UPDATE bookings SET status = 'cancelled' WHERE id = ?";
 
   db.query(sql, [bookingId], (err, result) => {
     if (err) {
-      console.error("Error cancelling booking:", err);
+      console.error(err);
       return res.status(500).json({ error: "Database error" });
     }
     res.json({ success: true, message: "Booking cancelled" });
