@@ -37,7 +37,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { useRoute } from 'vue-router';
+const route = useRoute();
 import ItemCard from '@/components/ItemCard.vue';
 import api from '@/services/api.js';
 
@@ -125,8 +127,27 @@ watch(() => props.category, () => {
   allItems();
 });
 
+const scrollToAnchor = async () => {
+  const hash = route.hash
+  if (hash) {
+    await nextTick() 
+    
+    const id = hash.slice(1)
+    const element = document.getElementById(id)
+    
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+}
 
-console.log(itemsBySubCategory.value);
+watch(itemsBySubCategory, () => {
+  setTimeout(scrollToAnchor, 100)
+}, { deep: true })
+
+watch(() => route.hash, () => {
+  scrollToAnchor()
+})
 </script>
 
 <style scoped>

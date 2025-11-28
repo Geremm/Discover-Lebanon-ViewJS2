@@ -1,7 +1,7 @@
 <template>
     <div class="destination-card">
     <router-link :to="detailsLink" class="card-link">
-      <img :src="image" :alt="title" />
+      <img :src="image" loading="lazy" :alt="title" />
       <div class="card-content">
         <p style="color: black; font-size: large; font-weight: bold; text-align: center;">{{ title }}</p>
         <p>{{ description }}</p>
@@ -30,6 +30,7 @@ const detailsLink = computed(() => {
   return {
     path: '/reserve',
     query: {
+      id : props.id,
       trip: props.title,
       price: props.price
     }

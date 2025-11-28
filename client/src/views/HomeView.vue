@@ -1,7 +1,7 @@
 <template>
   <div>
     <section class="hero fade-in" >
-      <img src="/images/raouche.jpg" alt="Raouché Rock" class="hero-bg" />
+      <img src="/images/raouche.jpg" loading="lazy" alt="Raouché Rock" class="hero-bg" />
       <div class="hero-text">
         <h1 class="hero-title">The Gateway to Lebanon</h1>
         <router-link to="/places" class="hero-btn">Explore Now</router-link>

@@ -27,32 +27,19 @@
 
 <script setup>
 
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import PlanCard from '@/components/PlanCard.vue';
 
-// --- Données ---
-const plans = ref([
-  { 
-    id: 1, 
-    name: '📍Batroun Beach Day', 
-    shortDesc: 'Enjoy the sun and waves with a full-day beach experience in Batroun.', 
-    imageUrl: '/images/batroun.jpeg', 
-    price: 25 
-  },
-  { 
-    id: 2, 
-    name: '📍Baalbek Temples Tour', 
-    shortDesc: 'Explore the grandeur of Roman ruins and rich history in Baalbek.', 
-    imageUrl: '/images/baalbek.jpg', 
-    price: 18 
-  },
-  { 
-    id: 3, 
-    name: '📍Jounieh Téléférique Ride', 
-    shortDesc: 'Ascend to Harissa via the iconic téléférique and enjoy breathtaking views.', 
-    imageUrl: '/images/harrissa.jpeg', 
-    price: 10 
+const plans = ref([]);
+
+onMounted(async () => {
+  try {
+    const response = await fetch('http://localhost:3000/api/items?category=plans');
+    const data = await response.json();
+    plans.value = data;
+  } catch (error) {
+    console.error("Erreur lors du chargement des plans:", error);
   }
-]);
+});
 
 </script>
