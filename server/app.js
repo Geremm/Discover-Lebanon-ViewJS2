@@ -13,43 +13,17 @@ const port = 3000;
 const JWT_SECRET = "KhazzDiscoverChris17";
 
 app.use(cors({
-  origin: "http://localhost:8080",
+  origin: "http://localhost:8081",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-
-// app.get('/api/items', (req, res) => {
-//     const category = req.query.category; // ex: /api/items?category=hotels
-    
-//     if (category) {
-//         const filtered = allItems.filter(item => item.category === category);
-//         return res.json(filtered);
-//     }
-    
-//     res.json(allItems);
-// });
-
-// 2. Récupérer un item spécifique par son ID
-
-// app.get('/api/item/:id', (req, res) => {
-//     const id = parseInt(req.params.id); // Convertir l'ID de l'URL en nombre
-//     const item = allItems.find(i => i.id === id);
-    
-//     if (item) {
-//         res.json(item);
-//     } else {
-//         res.status(404).json({ success: false, message: "Item not found" });
-//     }
-// });
-
-
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "root",
   database: "efrei",
   port: 3306
 });
@@ -65,7 +39,6 @@ db.connect(err => {
 app.get('/api/items', (req, res) => {
     const category = req.query.category;
     
-    // 1. Préparer la requête produits
     let queryProducts = 'SELECT * FROM products';
     let params = [];
 
@@ -74,22 +47,18 @@ app.get('/api/items', (req, res) => {
         params.push(category);
     }
 
-    // 2. Première requête : Récupérer les produits
     db.query(queryProducts, params, (err, products) => {
         if (err) {
             console.error(err);
             return res.status(500).json({ success: false, message: "Erreur DB Produits" });
         }
 
-        // 3. Deuxième requête : Récupérer TOUTES les images (Callback imbriqué)
         db.query('SELECT * FROM product_carousel_images', (err2, images) => {
             if (err2) {
                 console.error(err2);
                 return res.status(500).json({ success: false, message: "Erreur DB Images" });
             }
 
-            // 4. La fusion (Javascript)
-            // Maintenant qu'on a 'products' et 'images', on les assemble
             const result = products.map(product => {
                 const productImages = images
                     .filter(img => img.product_id === product.id)
@@ -101,7 +70,6 @@ app.get('/api/items', (req, res) => {
                 };
             });
 
-            // 5. On envoie la réponse
             res.json(result);
         });
     });
@@ -110,7 +78,6 @@ app.get('/api/items', (req, res) => {
 app.get('/api/item/:id', (req, res) => {
     const id = parseInt(req.params.id);
 
-    // 1. Première requête : Le produit
     db.query('SELECT * FROM products WHERE id = ?', [id], (err, rows) => {
         if (err) {
             console.error(err);
@@ -123,22 +90,18 @@ app.get('/api/item/:id', (req, res) => {
 
         const product = rows[0];
 
-        // 2. Deuxième requête : Les images de ce produit
         db.query('SELECT imageUrl FROM product_carousel_images WHERE product_id = ?', [id], (err2, imageRows) => {
             if (err2) {
                 console.error(err2);
                 return res.status(500).json({ success: false, message: "Erreur serveur images" });
             }
 
-            // 3. On ajoute le tableau au produit
             product.carouselImages = imageRows.map(img => img.imageUrl);
 
-            // 4. On renvoie le 
             res.json(product);
         });
     });
 });
-// 1. API TO SAVE A NEW RESERVATION
 app.post('/api/reserve', (req, res) => {
   const { userId, productId, date, time, guests, notes } = req.body;
 
@@ -156,7 +119,6 @@ app.post('/api/reserve', (req, res) => {
   });
 });
 
-// 2. API TO GET RESERVATIONS FOR "MY ACCOUNT"
 app.get('/api/my-bookings/:userId', (req, res) => {
   const userId = req.params.userId;
 
@@ -219,7 +181,6 @@ app.get('/api/admin/bookings', (req, res) => {
     });
 });
 
-// 2. Valider une réservation (Changer status pending -> completed)
 app.put('/api/admin/bookings/:id/complete', (req, res) => {
     const id = req.params.id;
     
@@ -310,23 +271,19 @@ app.put('/api/users/:id/password', async (req, res) => {
         return res.status(400).json({ success: false, message: "Champs manquants" });
     }
 
-    // 1. On récupère l'utilisateur pour avoir son mot de passe actuel haché
     db.query('SELECT * FROM users WHERE id = ?', [userId], async (err, results) => {
         if (err) return res.status(500).json({ success: false, message: "Erreur DB" });
         if (results.length === 0) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
 
         const user = results[0];
 
-        // 2. On vérifie si l'ancien mot de passe est bon
         const match = await bcrypt.compare(currentPassword, user.password);
         if (!match) {
             return res.status(401).json({ success: false, message: "Mot de passe actuel incorrect" });
         }
 
-        // 3. On hache le nouveau mot de passe
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-        // 4. On met à jour la base de données
         db.query('UPDATE users SET password = ? WHERE id = ?', [hashedNewPassword, userId], (errUpdate) => {
             if (errUpdate) return res.status(500).json({ success: false, message: "Erreur mise à jour" });
             
@@ -334,10 +291,8 @@ app.put('/api/users/:id/password', async (req, res) => {
         });
     });
 });
-// 1. AJOUTER UN FAVORI
 app.post('/api/favorites', (req, res) => {
     const { userId, productId } = req.body;
-    // INSERT IGNORE : Si c'est déjà favori, on ne fait rien (pas d'erreur)
     const sql = "INSERT IGNORE INTO user_favorites (user_id, product_id) VALUES (?, ?)";
     
     db.query(sql, [userId, productId], (err, result) => {
@@ -346,7 +301,6 @@ app.post('/api/favorites', (req, res) => {
     });
 });
 
-// 2. RETIRER UN FAVORI
 app.delete('/api/favorites/:userId/:productId', (req, res) => {
     const { userId, productId } = req.params;
     const sql = "DELETE FROM user_favorites WHERE user_id = ? AND product_id = ?";
@@ -357,11 +311,9 @@ app.delete('/api/favorites/:userId/:productId', (req, res) => {
     });
 });
 
-// 3. LISTER LES FAVORIS (Avec détails et images)
 app.get('/api/favorites/:userId', (req, res) => {
     const userId = req.params.userId;
 
-    // A. On récupère les produits liés à ce user
     const sql = `
         SELECT p.* FROM products p
         JOIN user_favorites uf ON p.id = uf.product_id
@@ -370,20 +322,18 @@ app.get('/api/favorites/:userId', (req, res) => {
 
     db.query(sql, [userId], (err, products) => {
         if (err) return res.status(500).json({ error: "DB Error" });
-        if (products.length === 0) return res.json([]); // Pas de favoris = tableau vide
+        if (products.length === 0) return res.json([]); 
 
-        // B. On récupère les images du carrousel pour ces produits
         db.query('SELECT * FROM product_carousel_images', (err2, images) => {
             if (err2) return res.status(500).json({ error: "DB Error Images" });
 
-            // C. On fusionne
             const result = products.map(product => {
                 const productImages = images
                     .filter(img => img.product_id === product.id)
-                    .map(img => img.imageUrl); // Ton screen montre 'imageUrl'
+                    .map(img => img.imageUrl); 
 
                 return {
-                    ...product, // Copie toutes les colonnes (qui sont déjà en camelCase chez toi)
+                    ...product, 
                     carouselImages: productImages
                 };
             });
@@ -445,7 +395,6 @@ app.post('/api/products', (req, res) => {
         price, lat, lng, phone 
     } = req.body;
 
-    // Vérification minimale
     if (!category || !name || !imageUrl) {
         return res.status(400).json({ success: false, message: "Champs obligatoires manquants" });
     }
@@ -473,7 +422,6 @@ app.post('/api/products', (req, res) => {
 });
 
 
-// SUPPRIMER UN PRODUIT
 app.delete('/api/products/:id', (req, res) => {
     const id = req.params.id;
     

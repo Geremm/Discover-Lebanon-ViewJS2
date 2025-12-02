@@ -42,11 +42,10 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-// --- Initialisation ---
 const route = useRoute();    
 const router = useRouter();  
 
-// --- État réactif du formulaire ---
+const productId = ref(null);
 const tripName = ref('');
 const basePrice = ref(0);
 const reservationDate = ref('');
@@ -54,28 +53,23 @@ const customerName = ref('');
 const numPeople = ref(1);
 const showSuccessMessage = ref(false);
 
-// --- Logique ---
 
-// Quand le composant est monté, on récupère les infos de l'URL
 onMounted(() => {
+  productId.value = route.query.id;
   tripName.value = route.query.trip || 'Trip not specified';
   basePrice.value = Number(route.query.price) || 0;
   
-  // Auto-fill name if user is logged in
   const user = JSON.parse(localStorage.getItem('user'));
   if (user) {
     customerName.value = user.name;
   }
 });
 
-// Propriété calculée pour le prix total
 const totalPrice = computed(() => {
   return (basePrice.value * numPeople.value).toFixed(2);
 });
 
-// --- CONNEXION AU BACKEND ---
 async function handleReservation() {
-  // 1. Vérifier si l'utilisateur est connecté
   const user = JSON.parse(localStorage.getItem('user'));
   
   if (!user) {
@@ -84,27 +78,23 @@ async function handleReservation() {
     return;
   }
 
-  // 2. Envoyer les données au serveur
   try {
     const res = await fetch('http://localhost:3000/api/reserve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: user.id,
-        productId: 999, // ID générique pour "Custom Trip" (puisque ce n'est pas un hôtel spécifique)
+        productId: productId.value, 
         date: reservationDate.value,
-        time: '09:00', // Heure par défaut pour un trip
+        time: '09:00', 
         guests: numPeople.value,
-        // Important : On sauvegarde le NOM du voyage dans les notes
         notes: `Custom Trip: ${tripName.value}` 
       })
     });
 
     if (res.ok) {
-      // 3. Succès !
       showSuccessMessage.value = true;
 
-      // Redirige vers "My Account" après 2 secondes pour voir la réservation
       setTimeout(() => {
         showSuccessMessage.value = false; 
         router.push('/account'); 

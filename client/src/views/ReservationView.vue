@@ -121,7 +121,6 @@
   const item = ref(null);
   const numberOfNights = ref(0);
   
-  // 1. Get Today's Date (YYYY-MM-DD) to prevent past bookings
   const today = new Date().toISOString().split('T')[0];
   
   const resData = ref({
@@ -133,13 +132,10 @@
     notes: ''
   });
   
-  // 2. Computed Property for Minimum Check-out Date
   const minCheckOutDate = computed(() => {
     if (!resData.value.checkIn) return today;
     
-    // Create date from selected Check-in
     const date = new Date(resData.value.checkIn);
-    // Add 1 Day
     date.setDate(date.getDate() + 1);
     
     return date.toISOString().split('T')[0];
@@ -161,9 +157,7 @@
     if (newVal >= 1 && newVal <= 20) resData.value.guests = newVal;
   };
   
-  // 3. Handle Check-in Change
   const handleCheckInChange = () => {
-    // If Check-out is earlier than new Check-in + 1 day, reset Check-out
     if (resData.value.checkOut && resData.value.checkOut <= resData.value.checkIn) {
       resData.value.checkOut = ''; 
       numberOfNights.value = 0;
@@ -177,7 +171,6 @@
       const start = new Date(resData.value.checkIn);
       const end = new Date(resData.value.checkOut);
       
-      // Ensure end is after start
       if (end <= start) {
         alert("Check-out must be after Check-in!");
         resData.value.checkOut = '';

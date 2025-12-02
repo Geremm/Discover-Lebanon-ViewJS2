@@ -46,7 +46,7 @@
       </div>
 
       <div class="login-right">
-        <img src="/images/zeytunaaaa.jpg" alt="Lebanon Landscape" class="login-img" />
+        <img src="/images/zeytunaaaa.jpg" loading="lazy" alt="Lebanon Landscape" class="login-img" />
       </div>
     </div>
 

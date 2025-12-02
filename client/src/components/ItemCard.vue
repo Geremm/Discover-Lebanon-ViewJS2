@@ -6,7 +6,7 @@
         {{ isFavorited ? '♥' : '♡' }}
       </div>
 
-      <img :src="image" :alt="title" />
+      <img :src="image" loading="lazy" :alt="title" />
       <h3>{{ title }}</h3>
       <p>{{ description }}</p>
       <span class="learn-more">Learn more →</span>

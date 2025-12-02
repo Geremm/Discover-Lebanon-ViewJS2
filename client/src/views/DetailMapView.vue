@@ -6,7 +6,7 @@
         <div :id="'photoCarousel' + item.id" ref="carouselElement" class="carousel slide mb-3">
           <div class="carousel-inner">
             <div v-for="(img, idx) in item.carouselImages" :key="img" class="carousel-item" :class="{ active: idx === 0 }">
-              <img :src="img" class="d-block w-100" :alt="item.name" />
+              <img :src="img" loading="lazy" class="d-block w-100" :alt="item.name" />
             </div>
           </div>
           <button class="carousel-control-prev" type="button" :data-bs-target="'#photoCarousel' + item.id" data-bs-slide="prev">
@@ -145,7 +145,7 @@ function initializeComponent() {
     // 3. HTML final simplifié
     const popupHTML = `
       <div class="popup-content">
-        <img src="${popupImage}" alt="${item.value.name}" class="popup-img" />
+        <img src="${popupImage}" alt="${item.value.name}" loading="lazy" class="popup-img" />
         <h5 class="popup-title">${item.value.title}</h5>
         <p class="popup-desc">${item.value.shortDesc || ''}</p>
         ${phoneSection}

@@ -109,30 +109,8 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes,
-//   scrollBehavior(to, from, savedPosition) {
-//     // 1) retour arrière / avant : garder la position
-//     if (savedPosition) {
-//       return savedPosition
-//     }
-
-//     // 2) si on a un hash (#xxxx)
-//     if (to.hash) {
-//       // on attend que la page soit rendue avant de scroller
-//       return new Promise((resolve) => {
-//         nextTick(() => {
-//           resolve({
-//             el: to.hash,      // cible un élément avec id="xxxx"
-//             behavior: 'smooth'
-//           })
-//         })
-//       })
-//     }
-
-//     // 3) par défaut, remonter en haut
-//     return { top: 0 }
-//   }
+  history: createWebHistory(),
+  routes
 })
 
 export default router

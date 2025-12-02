@@ -599,6 +599,7 @@ html {
   text-align: center;
   position:relative;
   z-index:4;
+  scroll-margin-top: 40px;
 }
 
 .place-section h2 {

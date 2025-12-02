@@ -49,7 +49,7 @@
       </div>
 
       <div class="login-right">
-        <img src="/images/zeytunaaaa.jpg" alt="Lebanon Landscape" class="login-img" />
+        <img src="/images/zeytunaaaa.jpg" loading="lazy" alt="Lebanon Landscape" class="login-img" />
       </div>
     </div>
 
@@ -68,7 +68,6 @@ const API_URL = "http://localhost:3000"
 
 const showPasswords = ref(false)
 
-// Fonction pour basculer la visibilité
 const togglePassword = () => {
   showPasswords.value = !showPasswords.value;
 };
@@ -112,7 +111,6 @@ const registerUser = async () => {
 </script>
 
 <style scoped>
-/* MAIN WRAPPER */
 .login-shell {
   width: 100%;
   height: 100vh;

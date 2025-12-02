@@ -21,9 +21,9 @@
         <div class="mega-menu">
           <div class="mega-column">
             <h4>Style</h4>
-            <router-link to="/hotels">Luxury Hotels</router-link>
-            <router-link to="/hotels">Boutique Hotels</router-link>
-            <router-link to="/hotels">Budget Hotels</router-link>
+            <router-link to="/hotels#Luxury">Luxury Hotels</router-link>
+            <router-link to="/hotels#Boutique">Boutique Hotels</router-link>
+            <router-link to="/hotels#Budget">Budget Hotels</router-link>
           </div>
         </div>
         
@@ -33,10 +33,10 @@
         <div class="mega-menu">
           <div class="mega-column">
             <h4>Style</h4>
-            <router-link to="/restaurants">Lebanese</router-link>
-            <router-link to="/restaurants">French</router-link>
-            <router-link to="/restaurants">Italian</router-link>
-            <router-link to="/restaurants">Fast foods</router-link>
+            <router-link to="/restaurants#Lebanese">Lebanese</router-link>
+            <router-link to="/restaurants#French">French</router-link>
+            <router-link to="/restaurants#Italian">Italian</router-link>
+            <router-link to="/restaurants#Fast">Fast foods</router-link>
           </div>
         </div>        
       </div>
@@ -45,8 +45,8 @@
         <div class="mega-menu">
           <div class="mega-column">
             <h4>Style</h4>
-            <router-link to="/activities">Outdoors</router-link>
-            <router-link to="/activities">Cultural</router-link>
+            <router-link to="/activities#Outdoor">Outdoors</router-link>
+            <router-link to="/activities#Cultural">Cultural</router-link>
           </div>
         </div>        
       </div>

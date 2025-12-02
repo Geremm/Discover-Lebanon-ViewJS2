@@ -897,11 +897,9 @@ const confirmCancel = async () => {
 
 
 const updatePassword = async () => {
-  // 1. Reset des messages
   securityError.value = ""
   securitySuccess.value = ""
 
-  // 2. Validation locale
   if (securityForm.value.newPassword !== securityForm.value.confirmPassword) {
     securityError.value = "New passwords do not match."
     return
@@ -913,8 +911,6 @@ const updatePassword = async () => {
   }
 
   try {
-    // 3. Appel API (PUT)
-    // On suppose que tu as l'ID de l'utilisateur dans user.value.id
     const res = await fetch(`http://localhost:3000/api/users/${user.value.id}/password`, {
       method: "PUT",
       headers: {
@@ -963,34 +959,28 @@ onMounted(async () => {
   }
 
   try {
-    // 1. Fetch Items (Favorites)
     const itemsData = await api.getAllItems()
     allItems.value = itemsData
 
-    // 2. Fetch Real Bookings
     const res = await fetch(`http://localhost:3000/api/my-bookings/${user.value.id}`)
     
     if (res.ok) {
       const data = await res.json()
       
       orders.value = data.map(b => {
-        // Logic to handle "Plan Your Trip" items (which might have null product_name)
         let displayTitle = b.product_name;
         let displayImage = b.product_image;
 
-        // If it's a custom trip, check the notes for the name
         if (!displayTitle && b.notes && b.notes.includes('Custom Trip:')) {
-           // Extracts "Baalbek Tour" from "Custom Trip: Baalbek Tour"
            displayTitle = b.notes.split('Custom Trip:')[1]; 
-           // Use a generic travel image for custom trips
            displayImage = ''; 
         }
 
         return {
           id: b.order_id,
-          title: displayTitle || 'Custom Trip', // Fallback title
+          title: displayTitle || 'Custom Trip', 
           image: displayImage || 'https://via.placeholder.com/400x250?text=No+Image',
-          category: b.category || 'Trip', // Fallback category
+          category: b.category || 'Trip', 
           date: b.booking_date ? b.booking_date.split('T')[0] : '',
           time: b.booking_time,
           guests: b.guests,
