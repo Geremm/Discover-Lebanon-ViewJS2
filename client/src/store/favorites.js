@@ -1,72 +1,82 @@
 import { ref, computed } from 'vue';
+import api from '../services/api'; // <--- 1. ON IMPORTE NOTRE SERVICE MAGIQUE
 
 // VARIABLES D'ÉTAT (State)
-const favoriteItems = ref([]); // La liste complète des objets (avec images, titres...)
+const favoriteItems = ref([]); 
 const currentUserId = ref(null);
 
-// GETTER (Computed) : Pour vérifier rapidement "Est-ce que l'ID 12 est favori ?"
+// GETTER (Computed)
 const favoriteIds = computed(() => {
-    return new Set(favoriteItems.value.map(item => item.id));
+    // 2. SÉCURITÉ ANTI-CRASH : On vérifie que c'est bien un tableau avant de faire .map()
+    // Si favoriteItems vaut null ou une erreur, on utilise un tableau vide []
+    const items = Array.isArray(favoriteItems.value) ? favoriteItems.value : [];
+    return new Set(items.map(item => item.id));
 });
 
 export function useFavorites() {
 
-    // A. INITIALISATION (À appeler au login ou au chargement du site)
+    // A. INITIALISATION
     async function initFavorites(user) {
         if (user && user.id) {
-            // CAS 1 : Utilisateur Connecté -> API
+            // CAS 1 : Utilisateur Connecté -> API via api.js
             currentUserId.value = user.id;
             try {
-                const res = await fetch(`http://localhost:3000/api/favorites/${user.id}`);
-                const data = await res.json();
-                favoriteItems.value = data;
+                // api.js gère le token et l'URL tout seul !
+                const data = await api.getMyFavorites(user.id);
+                
+                // On s'assure qu'on reçoit bien un tableau
+                favoriteItems.value = Array.isArray(data) ? data : [];
+                
+                console.log("Favoris chargés depuis API");
             } catch (e) {
                 console.error("Erreur init API favorites:", e);
+                favoriteItems.value = []; // En cas d'erreur, on vide la liste pour ne pas planter
             }
-            console.log("Favoris chargés depuis API pour user", user.id);
         } else {
-            // CAS 2 : Invité -> LocalStorage
+            // CAS 2 : Invité -> LocalStorage (Inchangé, c'est très bien)
             currentUserId.value = null;
             const local = localStorage.getItem('guest_favorites');
             favoriteItems.value = local ? JSON.parse(local) : [];
-            console.log("Favoris chargés depuis LocalStorage pour invité");
+            console.log("Favoris chargés depuis LocalStorage (Invité)");
         }
     }
 
     // B. ACTION : AJOUTER / RETIRER
     async function toggleFavorite(item) {
-        // 1. Mise à jour immédiate de l'écran (Optimiste)
+        // 1. Mise à jour immédiate de l'écran (Optimiste) -> On ne change rien, c'est parfait
         const exists = favoriteIds.value.has(item.id);
+        
         if (exists) {
             favoriteItems.value = favoriteItems.value.filter(i => i.id !== item.id);
         } else {
+            // Attention : assurez-vous que favoriteItems.value est un tableau avant de push
+            if (!Array.isArray(favoriteItems.value)) favoriteItems.value = [];
             favoriteItems.value.push(item);
         }
 
         // 2. Sauvegarde (API ou LocalStorage)
         if (currentUserId.value) {
-            console.log("Sauvegarde des favoris via API pour user", currentUserId.value);
+            console.log("Sauvegarde API...");
             try {
-                const url = exists ? `http://localhost:3000/api/favorites/${currentUserId.value}/${item.id}` : `http://localhost:3000/api/favorites`;
-                
-                const method = exists ? 'DELETE' : 'POST';
-                const body = exists ? null : JSON.stringify({ userId: currentUserId.value, productId: item.id });
-
-                await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body
-                });
+                if (exists) {
+                    // On supprime via l'API
+                    await api.removeFavorite(currentUserId.value, item.id);
+                } else {
+                    // On ajoute via l'API
+                    await api.addFavorite(currentUserId.value, item.id);
+                }
             } catch (e) {
                 console.error("Erreur API save:", e);
+                // Optionnel : Si l'API échoue, on pourrait annuler le changement visuel ici (rollback)
             }
         } else {
-            console.log("Sauvegarde des favoris via LocalStorage pour invité");
+            // Mode Invité
+            console.log("Sauvegarde LocalStorage...");
             localStorage.setItem('guest_favorites', JSON.stringify(favoriteItems.value));
         }
     }
 
-    // C. EXPORT (Ce que les composants peuvent utiliser)
+    // C. EXPORT
     return {
         favoriteItems,
         favoriteIds,

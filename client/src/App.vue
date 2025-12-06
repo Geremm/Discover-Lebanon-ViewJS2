@@ -72,5 +72,26 @@ const navbarClass = computed(() => {
 .main-chatbot-padding{
   padding-top: 25px; 
 }
-/* Assure-toi d'avoir le style pour .floating-fav-btn quelque part (dans main.css ou ici) */
+
+.floating-fav-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #D4AF37;
+  color: white;
+  font-weight: bold;
+  padding: 12px 24px;
+  border-radius: 10px;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  font-size: 1rem;
+  z-index: 1000;
+  display: block; /* hidden by default */
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.floating-fav-btn:hover {
+  background-color: rgb(183, 140, 0);
+  transform: scale(1.05);
+}
 </style>

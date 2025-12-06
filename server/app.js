@@ -13,7 +13,7 @@ const port = 3000;
 const JWT_SECRET = "KhazzDiscoverChris17";
 
 app.use(cors({
-  origin: "http://localhost:8080",
+  origin: "http://localhost:8081",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));app.use(express.json());
@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "",
+  password: "root",
   database: "efrei",
   port: 3306
 });
@@ -35,6 +35,40 @@ db.connect(err => {
     console.log("Connecté à MySQL");
   }
 });
+
+function generateToken(user) {
+  return jwt.sign(
+    { id: user.id, email: user.email },
+    JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+}
+
+function verifyToken(token) {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return decoded; // { id, email, iat, exp }
+  } catch (err) {
+    return null;
+  }
+}
+
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  
+  const token = authHeader && authHeader.split(' ')[1]; 
+  if (token == null) {
+
+    return res.status(401).json({ message: "Access denied. No token." });
+  }
+  const decodedUser = verifyToken(token);
+
+  if (decodedUser === null) {
+    return res.status(403).json({ message: "Invalid or expired token." });
+  }
+  req.user = decodedUser; 
+  next();
+};
 
 app.get('/api/items', (req, res) => {
     const category = req.query.category;
@@ -50,13 +84,13 @@ app.get('/api/items', (req, res) => {
     db.query(queryProducts, params, (err, products) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ success: false, message: "Erreur DB Produits" });
+            return res.status(500).json({ success: false, message: "Error DB products" });
         }
 
         db.query('SELECT * FROM product_carousel_images', (err2, images) => {
             if (err2) {
                 console.error(err2);
-                return res.status(500).json({ success: false, message: "Erreur DB Images" });
+                return res.status(500).json({ success: false, message: "Error DB Images" });
             }
 
             const result = products.map(product => {
@@ -75,13 +109,13 @@ app.get('/api/items', (req, res) => {
     });
 });
 
-app.get('/api/item/:id', (req, res) => {
+app.get('/api/item/:id', authenticateToken,(req, res) => {
     const id = parseInt(req.params.id);
 
     db.query('SELECT * FROM products WHERE id = ?', [id], (err, rows) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ success: false, message: "Erreur serveur" });
+            return res.status(500).json({ success: false, message: "Server error" });
         }
 
         if (rows.length === 0) {
@@ -102,7 +136,7 @@ app.get('/api/item/:id', (req, res) => {
         });
     });
 });
-app.post('/api/reserve', (req, res) => {
+app.post('/api/reserve', authenticateToken,(req, res) => {
   const { userId, productId, date, time, guests, notes } = req.body;
 
   const sql = `
@@ -119,7 +153,7 @@ app.post('/api/reserve', (req, res) => {
   });
 });
 
-app.get('/api/my-bookings/:userId', (req, res) => {
+app.get('/api/my-bookings/:userId', authenticateToken,(req, res) => {
   const userId = req.params.userId;
 
   const sql = `
@@ -149,7 +183,7 @@ app.get('/api/my-bookings/:userId', (req, res) => {
   });
 });
 
-app.get('/api/admin/bookings', (req, res) => {
+app.get('/api/admin/bookings', authenticateToken,(req, res) => {
     const sql = `
         SELECT 
             b.id, 
@@ -181,7 +215,7 @@ app.get('/api/admin/bookings', (req, res) => {
     });
 });
 
-app.put('/api/admin/bookings/:id/complete', (req, res) => {
+app.put('/api/admin/bookings/:id/complete', authenticateToken,(req, res) => {
     const id = req.params.id;
     
     const sql = "UPDATE bookings SET status = 'completed' WHERE id = ?";
@@ -192,7 +226,7 @@ app.put('/api/admin/bookings/:id/complete', (req, res) => {
     });
 });
 
-app.put('/api/admin/bookings/:id/pending', (req, res) => {
+app.put('/api/admin/bookings/:id/pending', authenticateToken,(req, res) => {
     const id = req.params.id;
     
     const sql = "UPDATE bookings SET status = 'pending' WHERE id = ?";
@@ -202,13 +236,7 @@ app.put('/api/admin/bookings/:id/pending', (req, res) => {
         res.json({ success: true, message: "Réservation validée !" });
     });
 });
-function generateToken(user) {
-  return jwt.sign(
-    { id: user.id, email: user.email },
-    JWT_SECRET,
-    { expiresIn: "30s" }
-  );
-}
+
 
 app.post("/api/register", async (req, res) => {
   const { name, email, password } = req.body;
@@ -263,7 +291,7 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-app.put('/api/users/:id/password', async (req, res) => {
+app.put('/api/users/:id/password', authenticateToken,async (req, res) => {
     const userId = req.params.id;
     const { currentPassword, newPassword } = req.body;
 
@@ -291,7 +319,7 @@ app.put('/api/users/:id/password', async (req, res) => {
         });
     });
 });
-app.post('/api/favorites', (req, res) => {
+app.post('/api/favorites', authenticateToken,(req, res) => {
     const { userId, productId } = req.body;
     const sql = "INSERT IGNORE INTO user_favorites (user_id, product_id) VALUES (?, ?)";
     
@@ -301,7 +329,7 @@ app.post('/api/favorites', (req, res) => {
     });
 });
 
-app.delete('/api/favorites/:userId/:productId', (req, res) => {
+app.delete('/api/favorites/:userId/:productId', authenticateToken,(req, res) => {
     const { userId, productId } = req.params;
     const sql = "DELETE FROM user_favorites WHERE user_id = ? AND product_id = ?";
     
@@ -311,7 +339,7 @@ app.delete('/api/favorites/:userId/:productId', (req, res) => {
     });
 });
 
-app.get('/api/favorites/:userId', (req, res) => {
+app.get('/api/favorites/:userId', authenticateToken,(req, res) => {
     const userId = req.params.userId;
 
     const sql = `
@@ -342,22 +370,20 @@ app.get('/api/favorites/:userId', (req, res) => {
         });
     });
 });
-// Add this to server/app.js
-app.post('/api/cancel-booking/:id', (req, res) => {
+app.post('/api/cancel-booking/:id', authenticateToken,(req, res) => {
   const bookingId = req.params.id;
   
-  // Update the status in the database to 'cancelled'
   const sql = "UPDATE bookings SET status = 'cancelled' WHERE id = ?";
 
   db.query(sql, [bookingId], (err, result) => {
     if (err) {
-      console.error(err);
+      console.error("Error cancelling booking:", err);
       return res.status(500).json({ error: "Database error" });
     }
     res.json({ success: true, message: "Booking cancelled" });
   });
 });
-app.post('/api/users/:id', (req, res) => {
+app.post('/api/users/:id', authenticateToken,(req, res) => {
     const userId = req.params.id;
     const { name } = req.body;
 
@@ -377,7 +403,7 @@ app.post('/api/users/:id', (req, res) => {
     });
 });
 
-app.delete('/api/admin/bookings/delete/:id', (req, res) => {
+app.delete('/api/admin/bookings/delete/:id', authenticateToken,(req, res) => {
     const id = req.params.id;
     const sql = "DELETE FROM bookings WHERE id = ?";
     
@@ -387,7 +413,7 @@ app.delete('/api/admin/bookings/delete/:id', (req, res) => {
     });
 });
 
-app.post('/api/products', (req, res) => {
+app.post('/api/admin/products', authenticateToken,(req, res) => {
     const { 
         id,
         category, subCategory, name, title, 
@@ -422,7 +448,7 @@ app.post('/api/products', (req, res) => {
 });
 
 
-app.delete('/api/products/:id', (req, res) => {
+app.delete('/api/admin/products/:id', authenticateToken,(req, res) => {
     const id = req.params.id;
     
     const sql = "DELETE FROM products WHERE id = ?";

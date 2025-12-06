@@ -137,6 +137,31 @@ display: inline-block;
 text-align: center;
 }
 
+.card-link {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.2rem;
+}
+
+.card-link img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.card-link h3 {
+  margin: 0 0 0.5rem;
+  text-align: center;
+}
+
+.card-link p {
+  flex-grow: 1; /* for the learn more */
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .destination-card {
   width: 100%;

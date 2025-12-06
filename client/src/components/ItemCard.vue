@@ -143,6 +143,74 @@ display: inline-block;
 text-align: center;
 }
 
+.card-link {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  text-decoration: none;
+  color: inherit;
+  padding: 1.2rem;
+}
+
+.card-link img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.card-link h3 {
+  margin: 0 0 0.5rem;
+  text-align: center;
+  color : black;
+}
+
+.card-link p {
+  flex-grow: 1; /* for the learn more */
+  text-align: center;
+}
+
+.favorite-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 1.4rem;
+  color: #bbb;
+  z-index: 10;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.favorite-icon:hover {
+  color: #e63946;
+  transform: scale(1.2);
+}
+
+.favorite-icon.favorited {
+  color: #e63946;
+}
+.toast2 {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 10000;
+}
+
+.toast2.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-10px);
+}
+
 @media (max-width: 768px) {
   .destination-card {
   width: 100%;

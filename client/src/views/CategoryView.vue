@@ -157,4 +157,40 @@ watch(() => route.hash, () => {
   color: #000000;
   margin-top: 20px;
 }
+
+
+.restaurants-hero  {
+  background-image: url('../assets/images/food.jpeg');
+}
+.hotels-hero{
+  background-image: url('../assets/images/hote.jpeg');
+}
+
+.activities-hero {
+  background-image: url('../assets/images/activity.jpeg');
+}
+
+    
+    .search-container {
+      text-align: center;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    
+    #searchInput {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      outline: none;
+    }
+    #noResults {
+      font-size: 1.1rem;
+      color: #777;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
+    }
 </style>

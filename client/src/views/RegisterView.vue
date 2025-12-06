@@ -64,7 +64,7 @@ const email = ref("")
 const password = ref("")
 const errorMessage = ref("")
 const successMessage = ref("")
-const API_URL = "http://localhost:3000"
+import api from "@/services/api.js"
 
 const showPasswords = ref(false)
 
@@ -77,28 +77,13 @@ const registerUser = async () => {
   successMessage.value = ""
 
   try {
-    const res = await fetch(`${API_URL}/api/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
+    api.register({
         name: name.value,
         email: email.value,
         password: password.value
       })
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      errorMessage.value = data.message || data.error || "Registration failed"
-      return
-    }
-
     successMessage.value = "Account created! You can now login."
 
-    // Clear the form
     name.value = ""
     email.value = ""
     password.value = ""

@@ -6,7 +6,7 @@
     <div v-else>
       <section class="baalbek-hero">
         <div class="baalbek-overlay"></div>
-        <div class="baalbek-text fade-in" id="baalbekText">
+        <div class="baalbek-text fade-in-up" id="baalbekText">
           <h1 class="hero-title">{{ place.title }}</h1>
           <p>{{ place.longDesc }}</p>
         </div>
@@ -61,3 +61,43 @@ onUnmounted(() => {
   document.body.style.backgroundAttachment = '';
 });
 </script>
+
+<style scoped>
+.baalbek-hero {
+  position: relative;
+  width: 100%;
+  height: 90vh;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+}
+
+.baalbek-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 50%;
+  display: none;
+  z-index: 1;
+}
+
+.baalbek-text {
+  position: relative;
+  z-index: 2;
+  width: 50%;
+  left: -0%;
+  padding: 40px;
+  font-size: 1.2rem;
+  font-family: 'Inter', sans-serif;
+  background: rgba(0, 0, 0, 0.5);
+  line-height: 1.8;
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.2em;
+  }
+}
+</style>

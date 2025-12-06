@@ -3,16 +3,26 @@
     <div class="row g-4">
       <div class="col-lg-6">
         
-        <div :id="'photoCarousel' + item.id" ref="carouselElement" class="carousel slide mb-3">
-          <div class="carousel-inner">
-            <div v-for="(img, idx) in item.carouselImages" :key="img" class="carousel-item" :class="{ active: idx === 0 }">
-              <img :src="img" loading="lazy" class="d-block w-100" :alt="item.name" />
-            </div>
+        <div class="carousel-container mb-3">
+          <div class="carousel-inner-custom">
+            
+            <transition-group :name="transitionName" tag="div" class="slides-wrapper">
+              <div 
+                v-for="(img, id) in item.carouselImages" 
+                v-show="id === currentSlide"
+                :key="img" 
+                class="carousel-item-custom"
+              >
+                <img :src="img" loading="lazy" class="d-block w-100" :alt="item.name" />
+              </div>
+            </transition-group>
+
           </div>
-          <button class="carousel-control-prev" type="button" :data-bs-target="'#photoCarousel' + item.id" data-bs-slide="prev">
+
+          <button v-if="item.carouselImages.length > 1" class="carousel-control-prev" type="button" @click.stop.prevent="prevSlide">
             <span class="carousel-control-prev-icon"></span>
           </button>
-          <button class="carousel-control-next" type="button" :data-bs-target="'#photoCarousel' + item.id" data-bs-slide="next">
+          <button v-if="item.carouselImages.length > 1" class="carousel-control-next" type="button" @click.stop.prevent="nextSlide">
             <span class="carousel-control-next-icon"></span>
           </button>
         </div>
@@ -27,178 +37,114 @@
             📅 Make a Reservation!
           </button>
         </div>
-
       </div>
 
       <div class="col-lg-6">
         <div class="card shadow-sm">
           <div class="card-body p-0">
-            <div ref="mapContainer" style="height: 400px; border-radius: 8px;"></div>
+            <div ref="mapContainer" style="height: 400px; border-radius: 8px; z-index:1"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
   <div v-else class="not-found">
-    <h1>Item Not Found</h1>
+    <h1 v-if="loading">Loading...</h1>
+    <h1 v-else>Item Not Found</h1>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { useRoute,useRouter } from 'vue-router';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import L from 'leaflet';
-import { Carousel } from 'bootstrap'; 
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 import api from '@/services/api.js';
 
-// --- Configuration initiale de Leaflet ---
-L.Icon.Default.mergeOptions({
-  iconUrl: iconUrl,
-  shadowUrl: shadowUrl
-});
+L.Icon.Default.mergeOptions({ iconUrl, shadowUrl });
 
-// --- État réactif (Refs) ---
 const route = useRoute();
 const router = useRouter();
 const mapContainer = ref(null);
-const carouselElement = ref(null);
-const item = ref(null); // 1. CORRECTION : Déclaration de la variable item
-let mapInstance = null;
-let carouselInstance = null;
+const item = ref(null);
+const loading = ref(false);
 
-// --- Chargement des données ---
+const currentSlide = ref(0);
+const transitionName = ref('slide-next');
+
+const nextSlide = () => {
+  if (item.value && item.value.carouselImages) {
+    transitionName.value = 'slide-next';
+    currentSlide.value = (currentSlide.value + 1) % item.value.carouselImages.length;
+  }
+};
+
+const prevSlide = () => {
+  if (item.value && item.value.carouselImages) {
+    transitionName.value = 'slide-prev';
+    currentSlide.value = (currentSlide.value - 1 + item.value.carouselImages.length) % item.value.carouselImages.length;
+  }
+};
+
+let mapInstance = null;
+
 const loadItem = async () => {
   const id = route.params.id;
+  if (!id) return;
+  loading.value = true;
+  currentSlide.value = 0;
+  
+  if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+
   try {
-    // 2. CORRECTION : Avec fetch, la réponse est directement l'objet de données
     const data = await api.getItemById(id);
+    if (data?.price) data.price = parseFloat(data.price);
     item.value = data; 
   } catch (error) {
-    console.error("Erreur lors du chargement de l'item:", error);
+    console.error("Erreur chargement:", error);
+  } finally {
+    loading.value = false;
   }
 };
 
-// --- Computed Properties ---
 const phoneHtml = computed(() => {
   if (!item.value?.phone) return '';
-  return `<i class="bi bi-telephone-fill"></i>
-          <a href="tel:${item.value.phone}">${item.value.phone}</a>`;
+  return `<i class="bi bi-telephone-fill"></i> <a href="tel:${item.value.phone}">${item.value.phone}</a>`;
 });
+
 const goToReservation = () => {
-  router.push(`/reserve/${item.value.id}`);
+  if(item.value) router.push(`/reserve/${item.value.id}`);
 };
 
-// --- Fonctions d'initialisation ---
-function initializeComponent() {
-  // 1. Nettoyage préalable
-  if (mapInstance) {
-    mapInstance.remove();
-    mapInstance = null;
-  }
-  if (carouselInstance) {
-    carouselInstance.dispose();
-    carouselInstance = null;
-  }
-
-  // 2. Vérification que le DOM et les données sont prêts
-  if (item.value && mapContainer.value && carouselElement.value) {
-    
-    // --- A. Initialisation de la Carte ---
+function initializeMap() {
+  if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+  if (item.value && mapContainer.value) {
     mapInstance = L.map(mapContainer.value).setView([item.value.lat, item.value.lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapInstance);
     
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(mapInstance);
-    
-    // Configuration de l'icône rouge
     const redIcon = new L.Icon({
       iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
       shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41]
+      iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
     });
-    
-    const marker = L.marker([item.value.lat, item.value.lng], { icon: redIcon }).addTo(mapInstance);
-    
-   // --- CONSTRUCTION DU POPUP (Version Propre) ---
-    
-    // 1. Choix de l'image
-    const popupImage = (item.value.carouselImages && item.value.carouselImages.length > 0) 
-      ? item.value.carouselImages[0] 
-      : item.value.imageUrl;
-
-    // 2. Gestion du téléphone
-    let phoneSection = '';
-    if (item.value.phone) {
-      phoneSection = `
-        <div class="popup-phone">
-          <i class="bi bi-telephone-fill"></i>
-          <a href="tel:${item.value.phone}">${item.value.phone}</a>
-        </div>
-      `;
-    }
-
-    // 3. HTML final simplifié
-    const popupHTML = `
-      <div class="popup-content">
-        <img src="${popupImage}" alt="${item.value.name}" loading="lazy" class="popup-img" />
-        <h5 class="popup-title">${item.value.title}</h5>
-        <p class="popup-desc">${item.value.shortDesc || ''}</p>
-        ${phoneSection}
-      </div>
-    `;
-
-    marker.bindPopup(popupHTML, {
-      offset: L.point(0, -30),
-      maxWidth: 250,
-      className: 'custom-popup-wrapper' // On donne une classe au conteneur global Leaflet
-    }).openPopup();
-
-    // Correction du bug d'affichage Leaflet
-    setTimeout(() => mapInstance.invalidateSize(), 100);
-
-    // --- B. Initialisation du Carrousel ---
-    // --- B. Initialisation du Carrousel ---
-    if (carouselElement.value) {
-      // Just use .value directly
-      carouselInstance = new Carousel(carouselElement.value, {
-        interval: 3000,
-        ride: 'carousel'
-      });
-    }
+    L.marker([item.value.lat, item.value.lng], { icon: redIcon }).addTo(mapInstance)
+     .bindPopup(`<b>${item.value.title}</b>`, { offset: L.point(0, -30) });
+    setTimeout(() => mapInstance?.invalidateSize(), 100);
   }
 }
 
-// --- Hooks de cycle de vie ---
-onMounted(() => {
-  loadItem();// On lance le chargement
-});
-
-
-// 3. CORRECTION : Utilisation de nextTick
-// On surveille l'item. Quand il arrive, on attend que Vue mette à jour le DOM (v-if), PUIS on initialise.
-watch(item, async () => {
-  await nextTick(); 
-  initializeComponent();
-});
-
-onUnmounted(() => {
-  if (mapInstance) mapInstance.remove();
-  if (carouselInstance) carouselInstance.dispose();
-});
+onMounted(() => loadItem());
+watch(() => route.params.id, (newId) => { if(newId) loadItem(); });
+watch(item, async () => { await nextTick(); initializeMap(); });
+onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = null; } });
 </script>
 
 <style scoped>
-/* 1. LES IMPORTS DOIVENT ÊTRE EN PREMIER ABSOLU */
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 @import 'leaflet/dist/leaflet.css';
 
-/* 2. Styles propres au composant (Scoped) */
 .container {
   padding-top: 50px;
   color: #333;
@@ -209,20 +155,60 @@ onUnmounted(() => {
   padding: 5rem;
   color: #333;
 }
-
-.carousel {
+.carousel-container {
+  position: relative;
   border-radius: 10px;
   overflow: hidden;
   border: 2px solid #ccc;
+  height: 350px; 
+  background: #f0f0f0;
 }
 
-.carousel-inner img {
-  border-radius: 8px; 
-  height: 350px;
+.carousel-inner-custom {
+  position: relative;
   width: 100%;
-  object-fit: cover;
-  transition: opacity 0.5s ease-in-out;
+  height: 100%;
+  overflow: hidden;
 }
+
+.carousel-item-custom {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-item-custom img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+
+.slide-next-enter-active,
+.slide-next-leave-active {
+  transition: transform 0.6s ease-in-out;
+}
+.slide-next-enter-from {
+  transform: translateX(100%); 
+}
+.slide-next-leave-to {
+  transform: translateX(-100%); 
+}
+
+.slide-prev-enter-active,
+.slide-prev-leave-active {
+  transition: transform 0.6s ease-in-out;
+}
+.slide-prev-enter-from {
+  transform: translateX(-100%); 
+}
+.slide-prev-leave-to {
+  transform: translateX(100%); 
+}
+
 
 #map {
   height: 400px;

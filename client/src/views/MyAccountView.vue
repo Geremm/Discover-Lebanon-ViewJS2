@@ -303,7 +303,7 @@
                   </div>
                   <div class="stat-pill">
                     <span class="stat-label">Total Items</span>
-                    <span class="stat-value">{{ allItems.length }}</span>
+                    <span class="stat-value">{{ nbItems }}</span>
                   </div>
                 </div>
               </div>
@@ -653,24 +653,17 @@ const closeAddModal = () => {
 
 const submitNewPlace = async () => {
   try {
-    const response = await fetch('http://localhost:3000/api/products', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newPlace.value)
-    });
-
-    if (response.ok) {
-      alert("New place added successfully! 🎉");
-      closeAddModal();
-      // Optionnel : recharger la liste des items pour mettre à jour le compteur
-      // fetchAllItems(); 
-    } else {
-      alert("Error saving place.");
-    }
+    await api.createProduct(newPlace.value);
+    alert("New place added successfully! 🎉");
+    closeAddModal();
+    let itemsData = await api.getAllItems()
+    allItems.value = itemsData 
   } catch (e) {
-    console.error(e);
+    alert("Error saving place: " + e.message);
   }
 };
+
+
 
 
 const saveName = async () => {
@@ -690,26 +683,19 @@ if (adminReservations.value.length > 0) {
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/api/users/${user.value.id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ name: newName })
-    });
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.message);
-    }
+    await api.updateProfileName(user.value.id, newName);
   } catch (error) {
     console.error("Erreur sauvegarde :", error);
     user.value.name = oldName;
     localStorage.setItem("user", JSON.stringify(user.value));
-    alert("Impossible de sauvegarder le nom. Vérifiez votre connexion.");
+    alert("Error updating name : " + error.message);
   }
 };
 
 // --- COMPUTED ---
+const nbItems = computed(() => {
+  return allItems.value.length;
+});
 const sidebarItems = computed(() => {
   const items = [
     { key: "info", label: "Overview", icon: "🏠" },
@@ -751,47 +737,37 @@ const delFromBookingsDatabase = async (id) => {
   const order_backup = orders.value.find(o => o.id === id);
   orders.value = orders.value.filter(o => o.id !== id);
   try {
-    // 1. On dit au serveur de mettre à jour
-    await fetch(`http://localhost:3000/api/admin/bookings/delete/${id}`, {
-      method: 'DELETE'
-    });
+    api.deleteBooking(id);
     adminReservations.value = adminReservations.value.filter(r => r.id !== id);
   } catch (e) {
     orders.value.push(order_backup);
-    console.error("Error suppression:", e);
+    console.error("Erreur suppression:", e);
   }
 };
 
 const fetchAdminBookings = async () => {
   try {
-    const response = await fetch('http://localhost:3000/api/admin/bookings');
-    const data = await response.json();
+    const data = await api.getAdminBookings();
 
-    // On mappe les données SQL pour qu'elles collent à ton affichage
     adminReservations.value = data.map(row => ({
       id: row.id,
       itemId: row.product_id,
       userId: row.user_id,
-      user: row.user_name,     // Vient du JOIN users
-      item: row.product_name,  // Vient du JOIN products
+      user: row.user_name,     
+      item: row.product_name,  
       date: row.booking_date,
       hour: row.booking_time,
       status: row.status
     }));
   } catch (e) {
-    console.error("Error chargement admin:", e);
+    console.error("Erreur chargement admin:", e);
   }
 };
 
-// Action pour valider (Appel API)
 const markAsProcessed = async (id) => {
   try {
-    // 1. On dit au serveur de mettre à jour
-    await fetch(`http://localhost:3000/api/admin/bookings/${id}/complete`, {
-      method: 'PUT'
-    });
+    await api.completeBooking(id);
 
-    // 2. On met à jour localement sans recharger la page
     const reservation = adminReservations.value.find(r => r.id === id);
     if (reservation) {
       reservation.status = 'completed';
@@ -809,10 +785,7 @@ const markAsProcessed = async (id) => {
 
 const markAsUnprocessed = async (id) => {
   try {
-    // 1. On dit au serveur de mettre à jour
-    await fetch(`http://localhost:3000/api/admin/bookings/${id}/pending`, {
-      method: 'PUT'
-    });
+    await api.pendingBooking(id);
 
     const reservation = adminReservations.value.find(r => r.id === id);
     if (reservation) {
@@ -877,21 +850,22 @@ const confirmCancel = async () => {
   if (!tripToCancel.value) return
 
   try {
-    // 1. Send POST request to backend
-    const res = await fetch(`http://localhost:3000/api/cancel-booking/${tripToCancel.value.id}`, {
-      method: 'POST'
-    })
+    await api.cancelBooking(tripToCancel.value.id)
 
-    if (res.ok) {
-      // 2. REMOVE the item from the list instantly (Vanishes)
-      orders.value = orders.value.filter(order => order.id !== tripToCancel.value.id)
-      
-      showCancelModal.value = false
-    } else {
-      alert("Could not cancel. Please try again.")
+    const index = orders.value.findIndex(o => o.id === tripToCancel.value.id)
+    if (index !== -1) {
+      orders.value[index].status = 'cancelled'
+      orders.value[index].statusLabel = 'Cancelled'
     }
+    adminReservations.value.forEach(r => {
+      if (r.id === tripToCancel.value.id) {
+        r.status = 'cancelled';
+      }
+    })
+    showCancelModal.value = false
   } catch (err) {
     console.error(err)
+    alert("Cancel impossible : " + err.message)
   }
 }
 
@@ -911,37 +885,25 @@ const updatePassword = async () => {
   }
 
   try {
-    const res = await fetch(`http://localhost:3000/api/users/${user.value.id}/password`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
+    securityError.value = "";
+    securitySuccess.value = "";
+
+    const payload = {
         currentPassword: securityForm.value.currentPassword,
         newPassword: securityForm.value.newPassword
-      })
-    })
+    };
+    await api.updatePassword(user.value.id, payload);
 
-    const data = await res.json()
+    securitySuccess.value = "Password updated successfully!";
 
-    // 4. Gestion des erreurs (ex: mauvais mot de passe actuel)
-    if (!res.ok || !data.success) {
-      securityError.value = data.message || "Failed to update password"
-      return
-    }
+    securityForm.value.currentPassword = "";
+    securityForm.value.newPassword = "";
+    securityForm.value.confirmPassword = "";
 
-    // 5. Succès
-    securitySuccess.value = "Password updated successfully!"
-    
-    // On vide le formulaire
-    securityForm.value.currentPassword = ""
-    securityForm.value.newPassword = ""
-    securityForm.value.confirmPassword = ""
-
-  } catch (err) {
-    securityError.value = "Server error. Please try again later."
-    console.error(err)
-  }
+} catch (err) {
+    console.error(err);
+    securityError.value = err.message; 
+}
 }
 
 // --- FETCH ---
@@ -962,34 +924,30 @@ onMounted(async () => {
     const itemsData = await api.getAllItems()
     allItems.value = itemsData
 
-    const res = await fetch(`http://localhost:3000/api/my-bookings/${user.value.id}`)
+    const bookingsData = await api.getMyBookings(user.value.id);
     
-    if (res.ok) {
-      const data = await res.json()
-      
-      orders.value = data.map(b => {
-        let displayTitle = b.product_name;
-        let displayImage = b.product_image;
+    orders.value = bookingsData.map(b => {
+      let displayTitle = b.product_name;
+      let displayImage = b.product_image;
 
-        if (!displayTitle && b.notes && b.notes.includes('Custom Trip:')) {
-           displayTitle = b.notes.split('Custom Trip:')[1]; 
-           displayImage = ''; 
-        }
+      if (!displayTitle && b.notes && b.notes.includes('Custom Trip:')) {
+          displayTitle = b.notes.split('Custom Trip:')[1]; 
+          displayImage = ''; 
+      }
 
-        return {
-          id: b.order_id,
-          title: displayTitle || 'Custom Trip', 
-          image: displayImage || 'https://via.placeholder.com/400x250?text=No+Image',
-          category: b.category || 'Trip', 
-          date: b.booking_date ? b.booking_date.split('T')[0] : '',
-          time: b.booking_time,
-          guests: b.guests,
-          status: b.status,
-          statusLabel: b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : 'Pending',
-          total: b.product_price ? (b.guests * b.product_price) + ' €' : `${b.guests} Guests`
-        };
-      })
-    }
+      return {
+        id: b.order_id,
+        title: displayTitle || 'Custom Trip', 
+        image: displayImage || 'https://via.placeholder.com/400x250?text=No+Image',
+        category: b.category || 'Trip', 
+        date: b.booking_date ? b.booking_date.split('T')[0] : '',
+        time: b.booking_time,
+        guests: b.guests,
+        status: b.status,
+        statusLabel: b.status ? b.status.charAt(0).toUpperCase() + b.status.slice(1) : 'Pending',
+        total: b.product_price ? (b.guests * b.product_price) + ' €' : `${b.guests} Guests`
+      };
+    })
   } catch (error) {
     console.error("Error fetching account data:", error)
   }

@@ -230,20 +230,11 @@
     }
   
     try {
-      const res = await fetch('http://localhost:3000/api/reserve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-  
-      if (res.ok) {
-        router.push('/account');
-      } else {
-        alert("Booking failed. Please try again.");
-      }
+      await api.reserve(payload);
+      alert("Reservation successful!");
     } catch (err) {
       console.error(err);
-      alert("Server connection error.");
+      alert("Error during reservation. Please try again.");
     }
   };
   </script>

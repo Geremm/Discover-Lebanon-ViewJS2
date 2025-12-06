@@ -59,11 +59,11 @@ import { useRouter } from "vue-router"
 import { login } from "@/store/auth"
 import { useFavorites } from '@/store/favorites';
 const { initFavorites } = useFavorites();
+import api from "@/services/api"
 
 const email = ref("")
 const password = ref("")
 const error = ref("")
-const API_URL = "http://localhost:3000"
 const router = useRouter()
 
 const showPasswords = ref(false)
@@ -77,29 +77,16 @@ const onLogin = async () => {
   error.value = ""
 
   try {
-    const res = await fetch(`${API_URL}/api/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.value, password: password.value })
-    })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      error.value = data.error || "Login failed"
-      return
-    }
+    const data = await api.login({ email: email.value, password: password.value })
 
     localStorage.setItem("token", data.token)
     localStorage.setItem("user", JSON.stringify(data.user))
     login(data.user)
-
-    const user = JSON.parse(localStorage.getItem('user'));
-    initFavorites(user);
+    initFavorites(data.user);
     router.push("/")
 
-  } catch {
-    error.value = "Server unreachable"
+  } catch(err) {
+    error.value = err.message || "Login failed. Please try again."
   }
 }
 </script>

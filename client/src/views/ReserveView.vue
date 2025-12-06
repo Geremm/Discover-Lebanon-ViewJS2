@@ -33,7 +33,7 @@
 
       <button id="reserveBtn" type="submit">Reserve</button>
       
-      <div v-if="showSuccessMessage" class="toast show">Reservation confirmed!</div>
+      <div v-if="showSuccessMessage" class="toast2 show">Reservation confirmed!</div>
     </form>
   </div>
 </template>
@@ -41,6 +41,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import api from "@/services/api";
 
 const route = useRoute();    
 const router = useRouter();  
@@ -79,32 +80,22 @@ async function handleReservation() {
   }
 
   try {
-    const res = await fetch('http://localhost:3000/api/reserve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    await api.createBooking({
         userId: user.id,
         productId: productId.value, 
         date: reservationDate.value,
         time: '09:00', 
         guests: numPeople.value,
         notes: `Custom Trip: ${tripName.value}` 
-      })
-    });
-
-    if (res.ok) {
+      });
       showSuccessMessage.value = true;
-
       setTimeout(() => {
         showSuccessMessage.value = false; 
         router.push('/account'); 
-      }, 2000);
-    } else {
-      alert("Reservation failed. Please try again.");
-    }
+      }, 100000);
   } catch (err) {
     console.error("Server error:", err);
-    alert("Could not connect to server.");
+    alert("Reservation failed. Please try again later.");
   }
 }
 </script>
@@ -147,7 +138,7 @@ async function handleReservation() {
     #reserveBtn:hover {
       background-color: #333;
     }
-    .toast {
+    .toast2 {
       text-align: center;
       margin-top: 20px;
       font-weight: bold;
