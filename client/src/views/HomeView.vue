@@ -53,7 +53,6 @@ onMounted(async () => {
 
 .next-section {
   margin-top: 4%;
-  height: 100vh;
   background: white;
   color: black;
   display: flex;
@@ -64,6 +63,7 @@ onMounted(async () => {
   text-align: center;
   z-index: 4;
   position: relative;
+  max-height: 100%;
 }
 
 .next-section h2 {

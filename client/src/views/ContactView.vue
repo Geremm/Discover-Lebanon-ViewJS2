@@ -116,10 +116,8 @@ const sendMessage = () => {
 <style scoped>
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 
-/* --- BACKGROUND --- */
 .contact-shell {
   min-height: 100vh;
-  /* High quality background image */
   background-image: url('https://images.unsplash.com/photo-1566839624466-396274eb7833?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
   background-size: cover;
   background-position: center;
@@ -127,11 +125,10 @@ const sendMessage = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 60px 20px 40px;
   position: relative;
 }
 
-/* Dark overlay to make text readable */
 .contact-overlay {
   position: absolute;
   inset: 0;
@@ -142,11 +139,10 @@ const sendMessage = () => {
     backdrop-filter: blur(3px);
 }
 
-/* --- GLASS CONTAINER --- */
 .glass-container {
   position: relative;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.85); /* Milky glass effect */
+  background: rgba(255, 255, 255, 0.85); 
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -163,9 +159,9 @@ const sendMessage = () => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- TYPOGRAPHY --- */
+
 .brand-subtitle {
-  color: #d4af37; /* Gold */
+  color: #d4af37; 
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -177,20 +173,20 @@ const sendMessage = () => {
 .brand-title {
   font-family: 'Playfair Display', serif;
   font-size: 3rem;
-  color: #886c19; /* Dark Green */
+  color: #886c19;  
   margin-bottom: 40px;
   text-align: center;
 }
 
-/* --- GRID LAYOUT --- */
+ 
 .content-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr; /* Form wider than info */
+  grid-template-columns: 1.5fr 1fr;  
   gap: 50px;
   align-items: start;
 }
 
-/* --- FORM STYLES --- */
+ 
 .form-section {
   padding-right: 30px;
   border-right: 1px solid rgba(0,0,0,0.05);
@@ -202,7 +198,7 @@ const sendMessage = () => {
   gap: 20px;
 }
 
-/* Floating Labels CSS Magic */
+
 .floating-label-group {
   position: relative;
   margin-bottom: 25px;
@@ -233,14 +229,14 @@ const sendMessage = () => {
   transition: all 0.3s ease;
 }
 
-/* Focus & Filled States */
+
 .floating-label-group input:focus,
 .floating-label-group input:not(:placeholder-shown),
 .floating-label-group textarea:focus,
 .floating-label-group textarea:not(:placeholder-shown),
 .floating-label-group select:focus,
 .floating-label-group select:valid {
-  border-bottom-color: #977b29; /* Active Green Border */
+  border-bottom-color: #977b29;  
 }
 
 .floating-label-group input:focus ~ label,
@@ -263,7 +259,7 @@ const sendMessage = () => {
   pointer-events: none;
 }
 
-/* Button */
+ 
 .submit-btn {
   background: linear-gradient(135deg, #977b29 0%,#977b29 100%);
   color: white;
@@ -287,7 +283,7 @@ const sendMessage = () => {
   background: linear-gradient(135deg, #977b29 0%,#977b29 100%);
 }
 
-/* --- INFO SECTION --- */
+ 
 .info-section {
   padding-left: 20px;
   display: flex;
@@ -304,7 +300,7 @@ const sendMessage = () => {
 .icon-wrapper {
   width: 45px;
   height: 45px;
-  background: #f4f1ea; /* Soft Beige */
+  background: #f4f1ea;  
   color: #d4af37;
   border-radius: 50%;
   display: flex;
@@ -328,7 +324,7 @@ const sendMessage = () => {
   line-height: 1.5;
 }
 
-/* Socials */
+ 
 .social-area {
   margin-top: 20px;
   border-top: 1px dashed #ddd;
@@ -369,6 +365,9 @@ const sendMessage = () => {
 
 /* --- RESPONSIVE --- */
 @media (max-width: 850px) {
+  .contact-shell {
+    padding: 80px 15px 30px;
+  }
   .glass-container {
     padding: 30px;
   }

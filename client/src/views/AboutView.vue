@@ -105,12 +105,13 @@
 .story-block.reverse .story-text {
   direction: ltr;
 }
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .story-block,
   .story-block.reverse {
     flex-direction: column;
     text-align: center;
     gap: 30px;
+    padding: 0 5px;
   }
 
   .story-block.reverse {

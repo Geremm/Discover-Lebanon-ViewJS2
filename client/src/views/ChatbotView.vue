@@ -39,17 +39,6 @@ const chatLog = ref([
 ]);
 const plans = ref([]);
 
-// // --- Data ---
-// const plans = [
-//   { name: "Ehden Nature Hike", price: 17 },
-//   { name: "Tyre Beach & Ruins", price: 22 },
-//   { name: "Qadisha Valley Trek", price: 19 },
-//   { name: "Tripoli Old City Tour", price: 14 },
-//   { name: "Shouf Tasting Tour", price: 16 },
-//   { name: "Byblos Old Souks Walk", price: 12 },
-//   { name: "Jeita Grotto Adventure", price: 15 }
-// ];
-
 // --- Chat Logic ---
 async function sendMessage() {
   const userText = userInput.value.trim();

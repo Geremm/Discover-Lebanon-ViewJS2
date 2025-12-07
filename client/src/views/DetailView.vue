@@ -99,5 +99,10 @@ onUnmounted(() => {
   .hero-title {
     font-size: 2.2em;
   }
+  .baalbek-text{
+    width: 100%;
+    padding: 20px;
+    padding-top: 30%;
+  }
 }
 </style>

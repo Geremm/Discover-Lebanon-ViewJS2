@@ -70,7 +70,7 @@
           <div class="top-card">
             <div class="top-card-icon">🧳</div>
             <div>
-              <h3>Trips</h3>
+              <h3>Reservations</h3>
               <p>{{ orders.length }} reservation{{ orders.length !== 1 ? 's' : '' }} in history.</p>
             </div>
           </div>
@@ -113,7 +113,7 @@
                   <span class="stat-value">{{ favoritedItems.length }}</span>
                 </div>
                 <div class="stat-pill">
-                  <span class="stat-label">Trips</span>
+                  <span class="stat-label">Reservation</span>
                   <span class="stat-value">{{ orders.length }}</span>
                 </div>
                 <div class="stat-pill">
@@ -187,7 +187,7 @@
         <section v-else-if="activeTab === 'orders'" class="panel transparent-panel">
           <header class="panel-header">
             <div>
-              <h2>Your Trips</h2>
+              <h2>Your Reservation</h2>
               <p>Upcoming and past reservations.</p>
             </div>
           </header>
@@ -235,7 +235,7 @@
 
           <div v-else class="empty-state">
             <div class="empty-illustration">🧳</div>
-            <h3>No trips booked yet</h3>
+            <h3>No reservation yet</h3>
             <p>Plan your first Lebanese escape and your reservations will appear here.</p>
             <router-link to="/plan-your-trip" class="empty-btn">Plan a trip</router-link>
           </div>
@@ -700,7 +700,7 @@ const sidebarItems = computed(() => {
   const items = [
     { key: "info", label: "Overview", icon: "🏠" },
     { key: "favourites", label: "Favorites", icon: "❤️" },
-    { key: "orders", label: "Trips", icon: "🧳" },
+    { key: "orders", label: "Reservation", icon: "🧳" },
     { key: "security", label: "Security", icon: "🔐" }
   ]
   if (user.value.role === 'admin') items.push({ key: "admin", label: "Admin Panel", icon: "⚙️" })
@@ -2187,6 +2187,10 @@ label {
     grid-template-columns: 1fr;
   }
 
+  .calendar-grid{
+    gap:0px;
+  }
+
   .account-sidebar {
     flex-direction: row;
     align-items: center;
@@ -2209,6 +2213,14 @@ label {
   .sidebar-link {
     padding: 8px 10px;
   }
+
+  .cal-event-pill{
+    white-space: normal;
+  }
+
+  .account-shell{
+    padding-top: 20%;
+  }
 }
 
 @media (max-width: 720px) {
@@ -2229,7 +2241,7 @@ label {
 
 @media (max-width: 520px) {
   .account-shell {
-    padding: 20px 10px 24px;
+    padding: 20% 10px 24px;
   }
 
   .account-sidebar {

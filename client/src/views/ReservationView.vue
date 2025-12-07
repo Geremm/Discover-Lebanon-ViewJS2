@@ -261,6 +261,7 @@
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
     display: grid;
     grid-template-columns: 1.1fr 1fr;
+    margin-top:5%;
   }
   
   /* Left Side (Visual) */
@@ -398,5 +399,6 @@
     .booking-card { grid-template-columns: 1fr; height: auto; }
     .booking-visual { height: 250px; }
     .booking-form-side { padding: 30px; }
+    .booking-shell { padding-top: 100px;}
   }
   </style>
