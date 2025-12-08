@@ -13,7 +13,7 @@ const port = 3000;
 const JWT_SECRET = "KhazzDiscoverChris17";
 
 app.use(cors({
-  origin: "http://localhost:8081",
+  origin: "http://localhost:8080",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));app.use(express.json());
@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "",
   database: "efrei",
   port: 3306
 });
@@ -32,7 +32,7 @@ db.connect(err => {
   if (err) {
     console.error("Erreur MySQL :", err);
   } else {
-    console.log("Connecté à MySQL");
+    console.log("Connected to MySQL");
   }
 });
 
