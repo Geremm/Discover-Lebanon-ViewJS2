@@ -1,18 +1,18 @@
 <template>
   <header class="navbar-lebanon">
     <div class="nav-left">DISCOVER LEBANON</div>
-    <div class="burger" @click="isMenuOpen = !isMenuOpen">&#9776;</div>
+    <div class="burger" :class="{ blackburger: isMenuOpen }" @click="isMenuOpen = !isMenuOpen" v-html="'&#9776;'"></div>
     <div class="nav-right nav-menu" :class="{ active: isMenuOpen }">
-      <router-link to="/">Home</router-link>
+      <router-link to="/" @click="isMenuOpen = false">Home</router-link>
       <div class="dropdown">
         <router-link to="/places" class="dropdown-toggle2">Places ▾</router-link>
         <div class="mega-menu">
           <div class="mega-column">
             <h4>Region</h4>
-            <router-link to="/places#Beirut">Beirut</router-link>
-            <router-link to="/places#North">North</router-link>
-            <router-link to="/places#South">South</router-link>
-            <router-link to="/places#Bekaa">Bekaa</router-link>
+            <router-link to="/places#Beirut" @click="isMenuOpen = false">Beirut</router-link>
+            <router-link to="/places#North" @click="isMenuOpen = false">North</router-link>
+            <router-link to="/places#South" @click="isMenuOpen = false">South</router-link>
+            <router-link to="/places#Bekaa" @click="isMenuOpen = false">Bekaa</router-link>
           </div>
         </div>
       </div>
@@ -21,9 +21,9 @@
         <div class="mega-menu">
           <div class="mega-column">
             <h4>Style</h4>
-            <router-link to="/hotels#Luxury">Luxury Hotels</router-link>
-            <router-link to="/hotels#Boutique">Boutique Hotels</router-link>
-            <router-link to="/hotels#Budget">Budget Hotels</router-link>
+            <router-link to="/hotels#Luxury" @click="isMenuOpen = false">Luxury Hotels</router-link>
+            <router-link to="/hotels#Boutique" @click="isMenuOpen = false">Boutique Hotels</router-link>
+            <router-link to="/hotels#Budget" @click="isMenuOpen = false">Budget Hotels</router-link>
           </div>
         </div>
         
@@ -33,10 +33,10 @@
         <div class="mega-menu">
           <div class="mega-column">
             <h4>Style</h4>
-            <router-link to="/restaurants#Lebanese">Lebanese</router-link>
-            <router-link to="/restaurants#French">French</router-link>
-            <router-link to="/restaurants#Italian">Italian</router-link>
-            <router-link to="/restaurants#Fast">Fast foods</router-link>
+            <router-link to="/restaurants#Lebanese" @click="isMenuOpen = false">Lebanese</router-link>
+            <router-link to="/restaurants#French" @click="isMenuOpen = false">French</router-link>
+            <router-link to="/restaurants#Italian" @click="isMenuOpen = false">Italian</router-link>
+            <router-link to="/restaurants#Fast" @click="isMenuOpen = false">Fast foods</router-link>
           </div>
         </div>        
       </div>
@@ -45,17 +45,17 @@
         <div class="mega-menu">
           <div class="mega-column">
             <h4>Style</h4>
-            <router-link to="/activities#Outdoor">Outdoors</router-link>
-            <router-link to="/activities#Cultural">Cultural</router-link>
+            <router-link to="/activities#Outdoor" @click="isMenuOpen = false">Outdoors</router-link>
+            <router-link to="/activities#Cultural" @click="isMenuOpen = false">Cultural</router-link>
           </div>
         </div>        
       </div>
       
-      <router-link to="/plan-your-trip">Plan your trip</router-link>
-      <router-link to="/about">About</router-link>
-      <router-link to="/contact">Contact</router-link>
-      <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
-      <router-link v-else to="/account">My Account</router-link>
+      <router-link to="/plan-your-trip" @click="isMenuOpen = false">Plan your trip</router-link>
+      <router-link to="/about" @click="isMenuOpen = false">About</router-link>
+      <router-link to="/contact" @click="isMenuOpen = false">Contact</router-link>
+      <router-link v-if="!isLoggedIn" to="/login" @click="isMenuOpen = false">Login</router-link>
+      <router-link v-else to="/account" @click="isMenuOpen = false">My Account</router-link>
     </div>
   </header>
 </template>
@@ -89,7 +89,7 @@ watch(() => route.meta, (newMeta) => {
 
 </script>
 
-<style scoped>
+<style scoped>  
 
 .navbar-lebanon {
   position: fixed;
@@ -99,8 +99,12 @@ watch(() => route.meta, (newMeta) => {
   justify-content: space-between;
   align-items: center;
   z-index: 3;
-  
 }
+
+.navbar-reservation {
+    background-color: rgb(184, 150, 45) !important;
+      padding: 1rem 1.5rem !important;
+  }
 
 
 .nav-left {
@@ -256,36 +260,108 @@ watch(() => route.meta, (newMeta) => {
   padding: 10px 20px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
+  .blackburger{
+    color: black;
+  } /* J'ai augmenté à 992px pour inclure les tablettes */
+  
+  /* 1. Ajustement de la barre principale */
+  .navbar-lebanon {
+    padding: 6px 20px;
+    background-color: rgba(0, 0, 0, 0.9); /* Fond sombre nécessaire sur mobile */
+    z-index: 1000;
+  }
+
   .burger {
+    display: block;
+    z-index: 1001; /* Doit être au-dessus du menu */
+  }
+
+  /* 2. Le conteneur du menu mobile */
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%; /* Pleine largeur ou max-width: 300px pour un panneau latéral */
+    height: 100vh;
+    background: white;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 80px; /* Espace pour ne pas cacher le haut sous la navbar */
+    padding-left: 20px;
+    padding-right: 20px;
+    
+    /* Animation de glissement */
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    display: flex;
+    overflow-y: auto; /* Permet de scroller si le menu est trop long */
+    box-shadow: none;
+  }
+
+  /* État ouvert */
+  .nav-menu.active {
+    transform: translateX(0);
+  }
+
+  /* 3. Liens principaux */
+  .nav-right a, 
+  .dropdown > a {
+    margin-left: 0;
+    padding: 15px 0;
+    display: block;
+    color: #333 !important; /* Texte sombre sur fond blanc */
+    font-size: 1.1rem;
+    border-bottom: 1px solid #f0f0f0;
+    width: 100%;
+    text-align: left;
+  }
+
+  /* 4. Gestion du Dropdown et Mega Menu sur Mobile */
+  .dropdown {
+    width: 100%;
     display: block;
   }
 
-  .nav-menu {
-    display: none;
-    flex-direction: column;
-    background: white;
+  /* Réinitialisation complète du Mega Menu pour mobile */
+  .mega-menu {
+    position: static; /* Crucial : remet le menu dans le flux normal */
+    transform: none;
+    opacity: 1;
+    visibility: visible;
     width: 100%;
-    position: absolute;
-    top: 70px;
-    left: 0;
-    z-index: 999;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    min-width: auto;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0 0 0 20px; /* Indentation pour la hiérarchie */
+    background-color: #f9f9f9; /* Fond légèrement gris pour différencier */
+    display: none; /* Caché par défaut */
+    gap: 0;
   }
 
-  .nav-menu.active {
-    display: flex;
+  /* Affichage du sous-menu au survol/clic (comportement tactile) */
+  .dropdown:hover .mega-menu,
+  .dropdown:focus-within .mega-menu {
+    display: block;
   }
 
-  .nav-menu a,
-  .dropdown > a {
-    color: #333 !important;
+  /* Style des colonnes et liens internes */
+  .mega-column {
+    width: 100%;
     padding: 10px 0;
   }
 
-  .dropdown {
-    width: 100%;
+  .mega-column h4 {
+    color: #b8962d; /* Couleur dorée pour les titres de section */
+    margin-top: 10px;
+  }
+
+  .mega-column a {
+    font-size: 0.9rem;
+    padding: 8px 0;
+    border-bottom: none;
+    color: #666 !important;
   }
 }
 

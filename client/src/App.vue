@@ -61,8 +61,8 @@ const mainClass = computed(() => {
 });
 
 const navbarClass = computed(() => {
-  if (route.name === 'hotel-detail' || route.name === 'restaurant-detail') {
-    return 'navbar d-flex justify-content-between align-items-center px-4 py-3 bg-dark';
+  if (route.name === 'hotel-detail' || route.name === 'restaurant-detail' || route.name === 'reservation') {
+    return 'navbar-reservation';
   }
   return 'navbar-lebanon';
 });
