@@ -119,6 +119,9 @@ const goToReservation = () => {
 
 function initializeMap() {
   if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+  if (!item.value) return;
+  if (item.value.lat === null) item.value.lat = 0;
+  if (item.value.lng === null) item.value.lng = 0;
   if (item.value && mapContainer.value) {
     mapInstance = L.map(mapContainer.value).setView([item.value.lat, item.value.lng], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapInstance);
@@ -128,8 +131,39 @@ function initializeMap() {
       shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
       iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
     });
-    L.marker([item.value.lat, item.value.lng], { icon: redIcon }).addTo(mapInstance)
-     .bindPopup(`<b>${item.value.title}</b>`, { offset: L.point(0, -30) });
+    const marker = L.marker([item.value.lat, item.value.lng], { icon: redIcon }).addTo(mapInstance);
+
+    const popupImage = (item.value.carouselImages && item.value.carouselImages.length > 0) 
+      ? item.value.carouselImages[0] 
+      : (item.value.imageUrl || 'https://via.placeholder.com/250x150?text=No+Image'); 
+
+    let phoneSection = '';
+    if (item.value.phone) {
+      phoneSection = `
+        <div class="popup-phone">
+          <i class="bi bi-telephone-fill"></i>
+          <a href="tel:${item.value.phone}">${item.value.phone}</a>
+        </div>
+      `;
+    }
+
+    const description = item.value.shortDesc || (item.value.longDesc ? item.value.longDesc.substring(0, 60) + '...' : '');
+
+    const popupHTML = `
+      <div class="popup-content">
+        <img src="${popupImage}" alt="${item.value.name || 'Image'}" class="popup-img" />
+        <h5 class="popup-title">${item.value.title}</h5>
+        <p class="popup-desc">${description}</p>
+        ${phoneSection}
+      </div>
+    `;
+
+    marker.bindPopup(popupHTML, {
+      offset: L.point(0, -30),
+      maxWidth: 250,
+      className: 'custom-popup-wrapper'
+    }).openPopup();
+
     setTimeout(() => mapInstance?.invalidateSize(), 100);
   }
 }
