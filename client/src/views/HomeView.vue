@@ -111,8 +111,7 @@ onMounted(async () => {
 }
 
 .hero {
-  height: 100vh; /* try 60vh or 70vh */
-  /*background: url('../images/about-hero.jpg') center/cover no-repeat;*/
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -80,7 +80,6 @@
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Story */
 .about-story-section {
   background: #f9f9f9;
   z-index:10;
@@ -132,7 +131,6 @@
 }
 
 
-/* Hover effect (optional) */
 .story-block img:hover {
   transform: rotate(0deg) scale(1.02);
 }

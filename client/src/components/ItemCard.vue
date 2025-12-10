@@ -36,7 +36,6 @@ const toastMessage = ref("");
 const { favoriteIds, toggleFavorite } = useFavorites();
 
 const isFavorited = computed(() => {
-    // Sécurité si favoriteIds n'est pas encore chargé
     return favoriteIds.value ? favoriteIds.value.has(props.id) : false;
 });
 
@@ -49,13 +48,12 @@ function showToast(message) {
 }
 
 const handleToggle = () => {
-  // On reconstruit l'objet pour le store local (important !)
   toggleFavorite({ 
     id: props.id, 
-    name: props.title,       // Mapping title -> name
-    imageUrl: props.image,   // Mapping image -> imageUrl
+    name: props.title,       
+    imageUrl: props.image,   
     category: props.category,
-    shortDesc: props.description // Mapping description -> shortDesc
+    shortDesc: props.description
   });
 
   if (isFavorited.value) showToast("Added to Favorites!");

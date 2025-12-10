@@ -12,7 +12,7 @@ const port = 3000;
 const JWT_SECRET = "KhazzDiscoverChris17";
 
 app.use(cors({
-  origin: "http://localhost:8081",
+  origin: "http://localhost:8080",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));app.use(express.json());
@@ -29,9 +29,9 @@ const db = mysql.createConnection({
 
 db.connect(err => {
   if (err) {
-    console.error("Erreur MySQL :", err);
+    console.error("MySQL Error:", err);
   } else {
-    console.log("Connecté à MySQL");
+    console.log("Connected to MySQL");
   }
 });
 
@@ -46,7 +46,7 @@ function generateToken(user) {
 function verifyToken(token) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    return decoded; // { id, email, iat, exp }
+    return decoded;
   } catch (err) {
     return null;
   }

@@ -586,7 +586,7 @@ const isEditingName = ref(false);
 const tempName = ref("");
 
 const showAddModal = ref(false);
-const showDeleteListModal = ref(false); // Pour la liste
+const showDeleteListModal = ref(false);
 const itemToDelete = ref(null);
 
 const confirmDeletion = (item) => {
@@ -618,7 +618,6 @@ const executeDelete = async () => {
   }
 };
 
-// Structure des données vide
 const initialFormState = {
   category: '',
   subCategory: '',
@@ -959,7 +958,6 @@ onMounted(async () => {
   color: black;
 }
 
-/* Page Layout */
 .account-shell {
   min-height: 100vh;
   background: linear-gradient(to bottom, #c3a52d 0, #fff8dc 15%, #ffffff 100%);
@@ -1125,7 +1123,6 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Main Content Area */
 .account-main {
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 26px;
@@ -1216,7 +1213,6 @@ onMounted(async () => {
   color: #777;
 }
 
-/* Account Info Cards */
 .info-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -1227,12 +1223,10 @@ onMounted(async () => {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 4fr 6fr;
-  /* 1 part gauche, 2 parts droite */
   gap: 20px;
   width: 100%;
   margin-bottom: 25px;
   border: none !important;
-  /* Pour écraser ton style inline temporaire */
 }
 
 .info-card {
@@ -1317,7 +1311,6 @@ onMounted(async () => {
   color: #7d7d7d;
 }
 
-/* === CALENDAR STYLES === */
 .calendar-container {
   margin-top: 24px;
   background: #fffdf7;
@@ -1387,7 +1380,6 @@ onMounted(async () => {
   transition: transform 0.1s ease;
 }
 
-/* Click interaction */
 .clickable-day {
   cursor: pointer;
 }
@@ -1444,7 +1436,6 @@ onMounted(async () => {
   color: #94621b;
 }
 
-/* === MODAL STYLES === */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1539,7 +1530,6 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-/* Favorites Grid */
 .favorites-grid {
   margin-top: 6px;
   display: grid;
@@ -1581,7 +1571,6 @@ onMounted(async () => {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Orders Table */
 .table-card {
   border-radius: 18px;
   border: 1px solid #efe6cf;
@@ -1628,7 +1617,6 @@ onMounted(async () => {
   color: #94621b;
 }
 
-/* Forms */
 .security-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -1705,9 +1693,6 @@ label {
   margin-top: 4px;
 }
 
-/* --- STYLE RESERVATIONS DASHBOARD --- */
-
-/* La carte globale prend 2 colonnes sur grand écran */
 .reservation-card {
   grid-column: span 2;
 }
@@ -1749,8 +1734,6 @@ label {
   font-weight: 700;
   letter-spacing: 0.5px;
 }
-
-/* Liste scrollable si trop d'éléments */
 .res-list {
   display: flex;
   flex-direction: column;
@@ -1758,20 +1741,16 @@ label {
   max-height: 350px;
   overflow-y: auto;
   padding-right: 5px;
-  /* Espace pour la scrollbar */
 }
 
-/* STYLE DES CARTES INDIVIDUELLES */
 .res-item-card {
   width: 100%;
-  /* Force la carte à prendre toute la largeur du parent */
   box-sizing: border-box;
   background: white;
   padding: 12px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
   border-left: 4px solid #d97706;
-  /* Orange pour pending */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1783,10 +1762,8 @@ label {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-/* Style spécifique pour items terminés */
 .done-item {
   border-left: 4px solid #10b981;
-  /* Vert pour done */
   opacity: 0.8;
   background: #fff;
 }
@@ -1824,7 +1801,6 @@ label {
   color: #64748b;
 }
 
-/* BOUTON D'ACTION */
 .action-btn {
   background: #ecfdf5;
   color: #059669;
@@ -1867,7 +1843,6 @@ label {
   transform: scale(1.1);
 }
 
-/* SAMLL */
 
 .action-btn-small {
   background: #ecfdf5;
@@ -1957,7 +1932,6 @@ label {
   border: 1px dashed #cbd5e1;
 }
 
-/* --- CANCEL BUTTON & MODAL STYLES --- */
 .btn-cancel-trip {
   width: 100%;
   background: transparent;
@@ -2170,7 +2144,6 @@ label {
   color: #324c3f;
 }
 
-/* Mobile : Une seule colonne */
 @media (max-width: 768px) {
   .reservation-grid {
     grid-template-columns: 1fr;
@@ -2181,7 +2154,6 @@ label {
   }
 }
 
-/* Responsive */
 @media (max-width: 950px) {
   .account-layout {
     grid-template-columns: 1fr;
@@ -2255,36 +2227,27 @@ label {
   }
 }
 
-/* --- RESPONSIVE DESIGN (Mobile & Tablette) --- */
 
-/* Étape 1 : Tablette et petits écrans (moins de 992px) */
 @media (max-width: 992px) {
   .admin-group {
-    /* On casse la grille : tout le monde passe en une seule colonne */
     grid-template-columns: 1fr;
     gap: 20px;
   }
 
-  /* On laisse la hauteur s'adapter au contenu au lieu de forcer 100% */
   .info-card {
     height: auto;
     min-height: 200px;
   }
-
-  /* On agrandit un peu la zone de scroll sur mobile pour voir plus d'items */
   .cancel-card .info-row {
     max-height: 350px;
   }
 }
 
-/* Étape 2 : Mobile très étroit (moins de 480px) */
 @media (max-width: 480px) {
   .res-item-card {
-    /* On garde l'alignement horizontal mais on réduit les espaces */
     padding: 10px;
   }
 
-  /* Si le nom de l'hôtel est long, on empile le nom du user et de l'hôtel */
   .res-main {
     flex-direction: column;
     align-items: flex-start;
@@ -2299,23 +2262,19 @@ label {
     font-size: 0.8rem;
   }
 
-  /* On réduit un peu la date pour qu'elle tienne sur une ligne */
   .res-top {
     font-size: 0.7rem;
   }
 }
 
-/* CUTE LOGOUT BUTTON STYLE */
 .logout-btn-red {
   width: 100%;
   margin-top: 20px;
   padding: 14px;
   border: none;
 
-  /* Make it a "Pill" shape */
   border-radius: 50px;
 
-  /* Soft Gradient (Coral to Pink) instead of flat red */
   background: linear-gradient(135deg, #ff9a9e 0%, #ff6b6b 100%);
 
   color: white;
@@ -2324,31 +2283,25 @@ label {
   letter-spacing: 0.5px;
   cursor: pointer;
 
-  /* Soft glowing shadow */
   box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
 
-  /* Smooth bubbly animation */
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-  /* Center text */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .logout-btn-red:hover {
-  /* Moves up slightly and glows more */
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4);
 }
 
 .logout-btn-red:active {
-  /* Click effect */
   transform: scale(0.95);
   box-shadow: 0 5px 15px rgba(255, 107, 107, 0.2);
 }
 
-/* --- ADD PLACE MODAL --- */
 .add-place-modal {
   width: 600px;
   max-width: 95%;
@@ -2420,7 +2373,6 @@ label {
 
 .btn-confirm-add {
   background: #10b981;
-  /* Vert */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -2452,10 +2404,9 @@ label {
   color: #2563eb;
 }
 
-/* Bouton dans Quick Actions */
 .btn-remove {
-  color: #e11d48; /* Rouge rose */
-  margin-top: 5px; /* Petit espace entre les boutons */
+  color: #e11d48;
+  margin-top: 5px;
 }
 .btn-remove:hover {
   color: #be123c;
@@ -2463,7 +2414,6 @@ label {
   border-radius: 5px;
 }
 
-/* MODALE LISTE */
 .delete-list-modal {
   width: 500px;
   max-width: 95%;
@@ -2496,7 +2446,7 @@ label {
 }
 
 .scrollable-list {
-  max-height: 300px; /* Scroll si trop d'items */
+  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -2511,14 +2461,12 @@ label {
 }
 
 .list-row:hover {
-  background: #fef2f2; /* Rouge très pâle au survol */
+  background: #fef2f2; 
 }
 
 .row-id { color: #94a3b8; font-size: 0.8rem; }
 .row-name { font-weight: 600; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row-cat { font-size: 0.7rem; text-align: center; }
-
-/* Bouton croix dans la liste */
 .btn-icon-delete {
   background: none;
   border: none;
@@ -2531,9 +2479,8 @@ label {
   transform: scale(1.2);
 }
 
-/* Z-Index High pour la confirmation */
 .z-high {
-  z-index: 10000 !important; /* Pour passer au-dessus de la première modale */
+  z-index: 10000 !important;
 }
 
 .edit-buttons{

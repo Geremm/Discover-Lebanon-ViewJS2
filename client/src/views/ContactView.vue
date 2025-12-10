@@ -4,7 +4,6 @@
     
     <div class="glass-container">
       
-      <!-- Header Text -->
       <div class="text-center mb-4">
         <h5 class="brand-subtitle">We'd love to hear from you</h5>
         <h1 class="brand-title">Contact Us</h1>
@@ -12,7 +11,6 @@
 
       <div class="content-grid">
         
-        <!-- LEFT: The Form -->
         <div class="form-section">
           <form @submit.prevent="sendMessage">
             
@@ -51,7 +49,6 @@
           </form>
         </div>
 
-        <!-- RIGHT: Contact Info (Divider Line) -->
         <div class="info-section">
           <div class="info-card">
             <div class="icon-wrapper"><i class="bi bi-geo-alt"></i></div>
@@ -106,7 +103,6 @@ const form = ref({
 const sendMessage = () => {
   console.log("Message sent:", form.value);
   alert(`Thanks ${form.value.name}! We will be in touch soon.`);
-  // Reset
   form.value.name = '';
   form.value.email = '';
   form.value.message = '';
@@ -363,7 +359,6 @@ const sendMessage = () => {
   transform: translateY(-3px);
 }
 
-/* --- RESPONSIVE --- */
 @media (max-width: 850px) {
   .contact-shell {
     padding: 80px 15px 30px;
