@@ -240,7 +240,6 @@
   </script>
   
   <style scoped>
-  /* Main Page Background */
   .booking-shell {
     min-height: 100vh;
     display: flex;
@@ -250,7 +249,6 @@
     padding: 20px;
   }
   
-  /* Card Container */
   .booking-card {
     background: white;
     width: 100%;
@@ -264,7 +262,6 @@
     margin-top:5%;
   }
   
-  /* Left Side (Visual) */
   .booking-visual {
     background-size: cover;
     background-position: center;
@@ -321,7 +318,6 @@
   
   .visual-desc { font-size: 1.1rem; opacity: 0.95; }
   
-  /* Right Side (Form) */
   .booking-form-side {
     padding: 50px;
     display: flex;
@@ -361,7 +357,6 @@
     box-shadow: 0 0 0 4px rgba(50, 76, 63, 0.1);
   }
   
-  /* Disabled state for Check-out until Check-in is picked */
   .input-group input:disabled {
     background-color: #eee;
     cursor: not-allowed;

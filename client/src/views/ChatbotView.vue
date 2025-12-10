@@ -21,7 +21,6 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router'; // Import the router
 
-// --- Lifecycle Hooks for Body Style ---
 onMounted(() => {
   document.body.classList.add('bodychat');
 });
@@ -29,8 +28,7 @@ onUnmounted(() => {
   document.body.classList.remove('bodychat');
 });
 
-// --- Reactive State ---
-const router = useRouter(); // Initialize the router for navigation
+const router = useRouter(); 
 const userInput = ref('');
 const chatLogContainer = ref(null);
 import api from '@/services/api';
@@ -39,17 +37,14 @@ const chatLog = ref([
 ]);
 const plans = ref([]);
 
-// --- Chat Logic ---
 async function sendMessage() {
   const userText = userInput.value.trim();
   if (!userText) return;
 
-  // Add user message to the reactive chat log array
   chatLog.value.push({ sender: 'user', text: userText });
   userInput.value = '';
   await scrollToBottom();
 
-  // Simulate bot thinking time
   setTimeout(() => {
     handleBotReply(userText.toLowerCase());
   }, 500);
@@ -59,20 +54,17 @@ async function handleBotReply(text) {
   if (text.includes("suggest")) {
     chatLog.value.push({ sender: 'bot', text: "Here are some trip ideas in Lebanon:" });
     
-    // Create a single message with line breaks for better formatting
     const suggestions = plans.value.map(plan => `${plan.name} – €${plan.price}`).join('<br>');
     chatLog.value.push({ sender: 'bot', text: suggestions });
 
     chatLog.value.push({ sender: 'bot', text: "Would you like to reserve one? Just type its name." });
 
   } else {
-    // Find a plan where the user's text includes the first word of the plan name
     const matched = plans.value.find(p => text.includes(p.name.toLowerCase().split(" ")[0].slice(2)));
     
     if (matched) {
       chatLog.value.push({ sender: 'bot', text: `Great! Redirecting you to reserve **${matched.name}**...` });
       
-      // Use the router to navigate to the reserve page without a full page reload
       setTimeout(() => {
         router.push({
           path: '/reserve',

@@ -21,14 +21,13 @@ import { useRoute } from 'vue-router';
 import api from '@/services/api.js';
 
 const route = useRoute();
-// CORRECTION : On renomme 'item' en 'place' pour correspondre au template
 const place = ref(null); 
 
 const loadItem = async () => {
   const id = route.params.id;
   try {
     const data = await api.getItemById(id);
-    place.value = data; // On met à jour 'place'
+    place.value = data;
     
     updateBodyBackground();
   } catch (error) {
@@ -37,7 +36,6 @@ const loadItem = async () => {
 };
 
 function updateBodyBackground() {
-  // On vérifie 'place.value'
   if (place.value) {
     document.body.style.backgroundImage = `url(${place.value.imageUrl})`;
     document.body.style.backgroundSize = 'cover';

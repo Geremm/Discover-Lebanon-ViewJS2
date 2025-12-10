@@ -33,6 +33,5 @@ import ItemCard from '@/components/ItemCard.vue';
 
 const { favoriteItems } = useFavorites();
 
-// On récupère juste la liste du store
 const favoritedItems = computed(() => favoriteItems.value || []);
 </script>

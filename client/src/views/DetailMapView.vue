@@ -243,7 +243,7 @@ onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = n
 }
 
 .item-phone i {
-  color: #d9534f; /* Corrigé pour uniformité (d9230f vs d9534f) */
+  color: #d9534f;
   margin-right: 8px;
 }
 
@@ -255,53 +255,42 @@ onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = n
 .item-phone a:hover {
   text-decoration: underline;
 }
-/* CUTE & BOUNCY RESERVATION BUTTON */
 .reserve-btn-large {
   width: 100%;
-  /* Soft Nature Gradient: Deep Green to Fresh Leaf */
   background: linear-gradient(135deg, #ac8d30 0%, #977b29 100%);
   color: white;
   border: none;
   
-  /* Pill Shape (Very Rounded) */
   border-radius: 50px;
   padding: 16px 24px;
   
-  /* Typography */
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   
-  /* Centering */
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   
-  /* Cute Shadow */
   box-shadow: 0 8px 20px #977b29;
   cursor: pointer;
   
-  /* Fun Bouncy Animation */
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
 }
 
-/* HOVER EFFECT: Lifts up & Glows */
 .reserve-btn-large:hover {
   transform: translateY(-5px) scale(1.02);
   box-shadow: 0 15px 30px rgba(50, 76, 63, 0.35);
   background: linear-gradient(135deg,#977b29 0%,#c3a036 100%);
 }
 
-/* CLICK EFFECT: Squishes down slightly */
 .reserve-btn-large:active {
   transform: scale(0.95);
   box-shadow: 0 5px 10px rgba(50, 76, 63, 0.2);
 }
-
-/* OPTIONAL: Subtle Pulse Animation (Makes it look alive) */
 .reserve-btn-large::after {
   content: '';
   position: absolute;
@@ -326,7 +315,6 @@ onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = n
 
 <style>
 
-/* --- Styles Leaflet Globaux --- */
 .leaflet-container {
   background-color: #f8f9fa !important;
 }
@@ -335,7 +323,6 @@ onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = n
   filter: none !important;
 }
 
-/* Fix z-index pour éviter que la carte passe au dessus du menu si besoin */
 .leaflet-popup-content-wrapper {
   z-index: 1001 !important;
   border-radius: 12px;
@@ -349,9 +336,6 @@ onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = n
   padding: 0 !important;
 }
 
-/* --- Styles du contenu du Popup (générés par JS) --- */
-/* Ces classes correspondent à ce que j'ai mis dans le JS "propre" précédent */
-
 .popup-content {
   text-align: center;
   max-width: 270px;
@@ -359,9 +343,9 @@ onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = n
 
 .popup-img {
   width: 100%;
-  height: 150px; /* Votre hauteur souhaitée */
+  height: 150px; 
   object-fit: cover;
-  border-radius: 6px; /* Retiré le border-radius bas pour coller au design wrapper */
+  border-radius: 6px; 
   margin-bottom: 8px;
   display: block;
 }
@@ -370,7 +354,7 @@ onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = n
   font-size: 1.1rem;
   margin-bottom: 5px;
   font-weight: 600;
-  padding: 0 10px; /* Un peu d'air sur les côtés */
+  padding: 0 10px; 
 }
 
 .popup-desc {
@@ -395,7 +379,6 @@ onBeforeUnmount(() => { if (mapInstance) { mapInstance.remove(); mapInstance = n
   text-decoration: underline;
 }
 
-/* Responsive Popup */
 @media (max-width: 576px) {
   .popup-img {
     height: 120px;

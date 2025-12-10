@@ -158,7 +158,7 @@ text-align: center;
 }
 
 .card-link p {
-  flex-grow: 1; /* for the learn more */
+  flex-grow: 1;
   text-align: center;
 }
 

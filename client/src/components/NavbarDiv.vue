@@ -263,69 +263,66 @@ watch(() => route.meta, (newMeta) => {
 @media (max-width: 992px) {
   .blackburger{
     color: black;
-  } /* J'ai augmenté à 992px pour inclure les tablettes */
+  } 
   
-  /* 1. Ajustement de la barre principale */
+  
   .navbar-lebanon {
     padding: 6px 20px;
-    background-color: rgba(0, 0, 0, 0.9); /* Fond sombre nécessaire sur mobile */
+    background-color: rgba(0, 0, 0, 0.9); 
     z-index: 1000;
   }
 
   .burger {
     display: block;
-    z-index: 1001; /* Doit être au-dessus du menu */
+    z-index: 1001; 
   }
 
-  /* 2. Le conteneur du menu mobile */
   .nav-menu {
     position: fixed;
     top: 0;
     right: 0;
-    width: 100%; /* Pleine largeur ou max-width: 300px pour un panneau latéral */
+    width: 100%; 
     height: 100vh;
     background: white;
     flex-direction: column;
     justify-content: flex-start;
-    padding-top: 80px; /* Espace pour ne pas cacher le haut sous la navbar */
+    padding-top: 80px; 
     padding-left: 20px;
     padding-right: 20px;
     
-    /* Animation de glissement */
     transform: translateX(100%);
     transition: transform 0.3s ease-in-out;
     display: flex;
-    overflow-y: auto; /* Permet de scroller si le menu est trop long */
+    overflow-y: auto; 
     box-shadow: none;
   }
 
-  /* État ouvert */
   .nav-menu.active {
     transform: translateX(0);
   }
 
-  /* 3. Liens principaux */
+  
   .nav-right a, 
   .dropdown > a {
     margin-left: 0;
     padding: 15px 0;
     display: block;
-    color: #333 !important; /* Texte sombre sur fond blanc */
+    color: #333 !important; 
     font-size: 1.1rem;
     border-bottom: 1px solid #f0f0f0;
     width: 100%;
     text-align: left;
   }
 
-  /* 4. Gestion du Dropdown et Mega Menu sur Mobile */
+  
   .dropdown {
     width: 100%;
     display: block;
   }
 
-  /* Réinitialisation complète du Mega Menu pour mobile */
+  
   .mega-menu {
-    position: static; /* Crucial : remet le menu dans le flux normal */
+    position: static; 
     transform: none;
     opacity: 1;
     visibility: visible;
@@ -334,26 +331,26 @@ watch(() => route.meta, (newMeta) => {
     border: none;
     box-shadow: none;
     border-radius: 0;
-    padding: 0 0 0 20px; /* Indentation pour la hiérarchie */
-    background-color: #f9f9f9; /* Fond légèrement gris pour différencier */
-    display: none; /* Caché par défaut */
+    padding: 0 0 0 20px; 
+    background-color: #f9f9f9; 
+    display: none; 
     gap: 0;
   }
 
-  /* Affichage du sous-menu au survol/clic (comportement tactile) */
+  
   .dropdown:hover .mega-menu,
   .dropdown:focus-within .mega-menu {
     display: block;
   }
 
-  /* Style des colonnes et liens internes */
+  
   .mega-column {
     width: 100%;
     padding: 10px 0;
   }
 
   .mega-column h4 {
-    color: #b8962d; /* Couleur dorée pour les titres de section */
+    color: #b8962d; 
     margin-top: 10px;
   }
 

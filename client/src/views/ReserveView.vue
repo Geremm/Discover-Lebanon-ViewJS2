@@ -92,7 +92,7 @@ async function handleReservation() {
       setTimeout(() => {
         showSuccessMessage.value = false; 
         router.push('/account'); 
-      }, 100000);
+      }, 1500);
   } catch (err) {
     console.error("Server error:", err);
     alert("Reservation failed. Please try again later.");
