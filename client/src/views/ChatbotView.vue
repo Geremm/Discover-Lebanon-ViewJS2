@@ -70,7 +70,8 @@ async function handleBotReply(text) {
           path: '/reserve',
           query: {
             trip: matched.name,
-            price: matched.price
+            price: matched.price,
+            id : matched.id
           }
         });
       }, 1500);
