@@ -22,7 +22,7 @@ Welcome to the **Discover Lebanon** project! This web application allows users t
 
 ---
 
-## 🛠️ Installation Guide
+##  Installation Guide
 
 Follow these steps to set up the project locally.
 
@@ -65,7 +65,7 @@ Before starting the server, you need to update the database connection settings 
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",       // Your MySQL username (usually 'root')
-  password: "root",   // <--- REPLACE with your own MySQL password
+  password: "",   // <--- REPLACE with your own MySQL password
   database: "efrei",  // Make sure this matches your imported database name
   port: 3306
 });
