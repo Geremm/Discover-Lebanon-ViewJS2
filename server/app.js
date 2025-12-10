@@ -108,7 +108,7 @@ app.get('/api/items', (req, res) => {
     });
 });
 
-app.get('/api/item/:id', authenticateToken,(req, res) => {
+app.get('/api/item/:id',(req, res) => {
     const id = parseInt(req.params.id);
 
     db.query('SELECT * FROM products WHERE id = ?', [id], (err, rows) => {

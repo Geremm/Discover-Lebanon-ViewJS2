@@ -32,7 +32,7 @@
             <span v-if="user && user.role !== 'admin'" class="badge-chip">Member</span>
             <span v-if="user && user.role === 'admin'" class="badge-chip badge-chip-admin">Admin</span>
             <span class="badge-chip badge-chip-gold">
-              {{ orders.length }} trip{{ orders.length > 1 ? 's' : '' }} planned
+              {{ orders.length }} reservation{{ orders.length > 1 ? 's' : '' }} booked
             </span>
           </div>
         </div>

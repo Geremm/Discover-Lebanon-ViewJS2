@@ -232,6 +232,9 @@
     try {
       await api.reserve(payload);
       alert("Reservation successful!");
+      setTimeout(() => {
+        router.push('/account');
+      }, 2000);  
     } catch (err) {
       console.error(err);
       alert("Error during reservation. Please try again.");
