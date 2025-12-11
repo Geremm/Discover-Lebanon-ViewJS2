@@ -68,7 +68,7 @@ const navbarClass = computed(() => {
 .floating-fav-btn {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 20px;
   background-color: #D4AF37;
   color: white;
   font-weight: bold;
