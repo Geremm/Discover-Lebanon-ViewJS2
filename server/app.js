@@ -430,6 +430,8 @@ app.post('/api/admin/products', authenticateToken,(req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
+     const sql2 = `INSERT INTO product_carousel_images (product_id, imageUrl) VALUES (?, ?)`;
+
     const values = [
         id,
         category, subCategory, name, title, 
@@ -442,7 +444,13 @@ app.post('/api/admin/products', authenticateToken,(req, res) => {
             console.error(err);
             return res.status(500).json({ success: false, message: "Erreur SQL" });
         }
-        res.json({ success: true, message: "Produit ajouté", id: result.insertId });
+        db.query(sql2, [result.insertId, imageUrl], (err2) => {
+            if (err2) {
+                console.error(err2);
+                return res.status(500).json({ success: false, message: "Erreur SQL images_carousel" });
+            }
+          });
+          res.json({ success: true, message: "Produit ajouté", id: result.insertId });
     });
 });
 
