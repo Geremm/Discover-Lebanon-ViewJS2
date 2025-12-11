@@ -7,7 +7,7 @@
         <p>{{ description }}</p>
         <div class="card-footer">
             <span class="price-footer">{{price}}</span>
-            <router-link :to="detailsLink" class="learn-more">Reserve</router-link>
+            <span class="learn-more">Reserve</span>
           </div>
       </div>
     </router-link>  
@@ -95,6 +95,10 @@ const detailsLink = computed(() => {
 
 .card-content {
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex-grow:1;
+  width: 100%;
 }
 
 .card-footer {
