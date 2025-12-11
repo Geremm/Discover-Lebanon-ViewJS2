@@ -37,7 +37,7 @@ db.connect(err => {
 
 function generateToken(user) {
   return jwt.sign(
-    { id: user.id, email: user.email },
+    { id: user.id, email: user.email, role: user.role },
     JWT_SECRET,
     { expiresIn: "1h" }
   );
@@ -52,12 +52,23 @@ function verifyToken(token) {
   }
 }
 
+function checkIsAdmin(token) {
+  const decodedUser = verifyToken(token);
+
+  if (!decodedUser) 
+    return { allowed: false, message: "Token invalid" };
+  
+  if (decodedUser.role !== 'admin') 
+    return { allowed: false, message: "Access denied : You are not an admin" };
+  
+  return { allowed: true, user: decodedUser };
+}
+
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   
   const token = authHeader && authHeader.split(' ')[1]; 
   if (token == null) {
-
     return res.status(401).json({ message: "Access denied. No token." });
   }
   const decodedUser = verifyToken(token);
@@ -66,6 +77,13 @@ const authenticateToken = (req, res, next) => {
     return res.status(403).json({ message: "Invalid or expired token." });
   }
   req.user = decodedUser; 
+  next();
+};
+
+const requireAdmin = (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).send("Administrator access only");
+  }
   next();
 };
 
@@ -182,7 +200,7 @@ app.get('/api/my-bookings/:userId', authenticateToken,(req, res) => {
   });
 });
 
-app.get('/api/admin/bookings', authenticateToken,(req, res) => {
+app.get('/api/admin/bookings', authenticateToken, requireAdmin, (req, res) => {
     const sql = `
         SELECT 
             b.id, 
@@ -214,7 +232,7 @@ app.get('/api/admin/bookings', authenticateToken,(req, res) => {
     });
 });
 
-app.put('/api/admin/bookings/:id/complete', authenticateToken,(req, res) => {
+app.put('/api/admin/bookings/:id/complete', authenticateToken, requireAdmin, (req, res) => {
     const id = req.params.id;
     
     const sql = "UPDATE bookings SET status = 'completed' WHERE id = ?";
@@ -225,7 +243,7 @@ app.put('/api/admin/bookings/:id/complete', authenticateToken,(req, res) => {
     });
 });
 
-app.put('/api/admin/bookings/:id/pending', authenticateToken,(req, res) => {
+app.put('/api/admin/bookings/:id/pending', authenticateToken, requireAdmin,(req, res) => {
     const id = req.params.id;
     
     const sql = "UPDATE bookings SET status = 'pending' WHERE id = ?";
@@ -402,7 +420,7 @@ app.post('/api/users/:id', authenticateToken,(req, res) => {
     });
 });
 
-app.delete('/api/admin/bookings/delete/:id', authenticateToken,(req, res) => {
+app.delete('/api/admin/bookings/delete/:id', authenticateToken, requireAdmin,(req, res) => {
     const id = req.params.id;
     const sql = "DELETE FROM bookings WHERE id = ?";
     
@@ -412,7 +430,7 @@ app.delete('/api/admin/bookings/delete/:id', authenticateToken,(req, res) => {
     });
 });
 
-app.post('/api/admin/products', authenticateToken,(req, res) => {
+app.post('/api/admin/products', authenticateToken, requireAdmin, (req, res) => {
     const { 
         id,
         category, subCategory, name, title, 
@@ -455,7 +473,7 @@ app.post('/api/admin/products', authenticateToken,(req, res) => {
 });
 
 
-app.delete('/api/admin/products/:id', authenticateToken,(req, res) => {
+app.delete('/api/admin/products/:id', authenticateToken, requireAdmin,(req, res) => {
     const id = req.params.id;
     
     const sql = "DELETE FROM products WHERE id = ?";
