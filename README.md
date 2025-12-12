@@ -90,3 +90,10 @@ Use the following accounts to test the application features.
 | :--- | :--- | :--- | :--- |
 | **Admin** | `Admin@gmail.com` | `AdminSPA159` | Acess to Admin Panel |
 | **User** | `user@gmail.com` | `UserSPA159` | Access to "My Account" & planning features |
+
+
+Made by: Christine Khazaka
+         Rawad Allam
+         Seifeleslam El Ghabaty 
+
+         
