@@ -93,7 +93,6 @@ Use the following accounts to test the application features.
 
 
 Made by: Christine Khazaka
-         Rawad Allam
-         Seifeleslam El Ghabaty 
+         Gérémy RUIS
 
          
